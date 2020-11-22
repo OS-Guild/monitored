@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "es2015",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "declaration": true,
+        "rootDir": "src",
+        "outDir": "dist",
+        "removeComments": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "sourceMap": false,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "lib": ["dom", "es2017"],
+        "skipLibCheck": true,
+        "noImplicitAny": false
+    },
+    "include": ["src/**/*", "types/*.d.ts"],
+    "exclude": ["__tests__", "dist"]
+}

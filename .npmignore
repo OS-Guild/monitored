@@ -1,0 +1,9 @@
+node_modules
+npm-debug.log
+.env
+.idea
+.npmrc
+yarn.*
+.vscode
+yarn-error.log
+example
