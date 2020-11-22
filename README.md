@@ -1,4 +1,4 @@
-# monitored
+# monitored :mag:
 
 A utility for monitoring services
 
