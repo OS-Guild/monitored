@@ -19,7 +19,7 @@ class Monitor {
 
     constructor(options: MonitorOptions) {
         this.config = {
-            serviceName: options.serviceName ? options.serviceName + '.' : '',
+            serviceName: options.serviceName ? `${options.serviceName}.` : '',
             shouldMonitorExecutionStart: options.shouldMonitorExecutionStart ?? true,
             disableSuccessLogs: options.logging?.disableSuccessLogs ?? false,
         };
@@ -30,15 +30,15 @@ class Monitor {
         this.defaultParseError = options.logging?.defaultParseError ?? parseError;
 
         if (options.statsd) {
-            const {apiKey, root, ...restStatsdOptions} = options.statsd;
+            const {apiKey, root, port, ...restStatsdOptions} = options.statsd;
             const prefixesArray = [apiKey, root];
             if (options.serviceName) {
                 prefixesArray.push(options.serviceName);
             }
-            const prefix = prefixesArray.join('.') + '.';
+            const prefix = `${prefixesArray.join('.')}.`;
 
             this.statsdClient = new AsyncStatsD(this.logger, {
-                port: 8125,
+                port: port ?? 8125,
                 prefix,
                 mock: options.mock,
                 ...restStatsdOptions,

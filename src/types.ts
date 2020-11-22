@@ -4,6 +4,7 @@ interface StatsdOptions extends Omit<StatsdClientOptions, 'prefix'> {
   apiKey: string;
   root: string;
   host: string;
+  port?: number;
 }
 
 export type MonitorOptions = {
