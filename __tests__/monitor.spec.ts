@@ -1,3 +1,6 @@
+
+import * as AsyncStatsD from './__mocks__/AsyncStatsD';
+
 import {mocked} from 'ts-jest/utils';
 import Monitor from '../src/Monitor';
 import {consoleLogger} from '../src/loggers';
@@ -9,8 +12,8 @@ import {
     assertGaugeWasCalled,
 } from './utils';
 
-jest.mock('../AsyncStatsD');
-jest.mock('../loggers', () => ({
+jest.mock('../src/AsyncStatsD', () => AsyncStatsD);
+jest.mock('../src/loggers', () => ({
     consoleLogger: {
         info: jest.fn(),
         debug: jest.fn(),
@@ -24,7 +27,7 @@ jest.mock('../loggers', () => ({
         error: jest.fn(),
     },
 }));
-jest.mock('../parseError', () => ({
+jest.mock('../src/parseError', () => ({
     default: err => err,
 }));
 
