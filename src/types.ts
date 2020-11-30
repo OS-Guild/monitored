@@ -1,4 +1,4 @@
-import {ClientOptions as StatsdClientOptions} from 'hot-shots';
+import {ClientOptions as StatsdClientOptions, Tags as StatsdTags} from 'hot-shots';
 
 interface StatsdOptions extends Omit<StatsdClientOptions, 'prefix'> {
   apiKey: string;
@@ -32,4 +32,5 @@ export type MonitoredOptions<T> = {
   logErrorAsInfo?: boolean,
   shouldMonitorError?: (e: any) => boolean;
   shouldMonitorSuccess?: (r: Unpromisify<T>) => boolean;
+  tags?: StatsdTags;
 };

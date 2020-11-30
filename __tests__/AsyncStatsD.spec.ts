@@ -1,7 +1,7 @@
 import {MonitorOptions} from '../src';
 import {AsyncStatsD} from '../src/AsyncStatsD';
 import {mocked} from 'ts-jest/utils';
-import {StatsCb} from 'hot-shots';
+import {StatsCb, Tags} from 'hot-shots';
 import { Logger } from '../src/Logger';
 import {consoleLogger} from '../src/loggers';
 
@@ -26,14 +26,14 @@ describe('AsyncStatsD', () => {
             mockStatsdCallback(client.statsd.increment, undefined);
             await expect(client.increment('test', 3)).resolves.toEqual(undefined);
 
-            expect(mocked(client.statsd.increment)).toHaveBeenCalledWith('test', 3, expect.any(Function));
+            expect(mocked(client.statsd.increment)).toHaveBeenCalledWith('test', 3, undefined, expect.any(Function));
         });
 
         test('success - use default value', async () => {
             mockStatsdCallback(client.statsd.increment, undefined);
             await expect(client.increment('test')).resolves.toEqual(undefined);
 
-            expect(mocked(client.statsd.increment)).toHaveBeenCalledWith('test', 1, expect.any(Function));
+            expect(mocked(client.statsd.increment)).toHaveBeenCalledWith('test', 1, undefined, expect.any(Function));
         });
 
         test('error', async () => {
@@ -41,7 +41,7 @@ describe('AsyncStatsD', () => {
 
             await expect(client.increment('test', 3)).resolves.toEqual(undefined);
 
-            expect(mocked(client.statsd.increment)).toHaveBeenCalledWith('test', 3, expect.any(Function));
+            expect(mocked(client.statsd.increment)).toHaveBeenCalledWith('test', 3, undefined, expect.any(Function));
         });
     });
 
@@ -50,7 +50,7 @@ describe('AsyncStatsD', () => {
             mockStatsdCallback(client.statsd.timing, undefined);
             await expect(client.timing('test', 2000)).resolves.toEqual(undefined);
 
-            expect(mocked(client.statsd.timing)).toHaveBeenCalledWith('test', 2000, expect.any(Function));
+            expect(mocked(client.statsd.timing)).toHaveBeenCalledWith('test', 2000, undefined, expect.any(Function));
         });
 
         test('error', async () => {
@@ -58,7 +58,7 @@ describe('AsyncStatsD', () => {
 
             await expect(client.timing('test', 2000)).resolves.toEqual(undefined);
 
-            expect(mocked(client.statsd.timing)).toHaveBeenCalledWith('test', 2000, expect.any(Function));
+            expect(mocked(client.statsd.timing)).toHaveBeenCalledWith('test', 2000, undefined, expect.any(Function));
         });
     });
 
@@ -67,7 +67,7 @@ describe('AsyncStatsD', () => {
             mockStatsdCallback(client.statsd.gauge, undefined);
             await expect(client.gauge('test', 1)).resolves.toEqual(undefined);
 
-            expect(mocked(client.statsd.gauge)).toHaveBeenCalledWith('test', 1, expect.any(Function));
+            expect(mocked(client.statsd.gauge)).toHaveBeenCalledWith('test', 1, undefined, expect.any(Function));
         });
 
         test('error', async () => {
@@ -75,7 +75,7 @@ describe('AsyncStatsD', () => {
 
             await expect(client.gauge('test', 1)).resolves.toEqual(undefined);
 
-            expect(mocked(client.statsd.gauge)).toHaveBeenCalledWith('test', 1, expect.any(Function));
+            expect(mocked(client.statsd.gauge)).toHaveBeenCalledWith('test', 1, undefined, expect.any(Function));
         });
     });
 
@@ -126,10 +126,10 @@ interface MockStatsdCallbackOptions {
     error?: any;
 }
 
-function mockStatsdCallback(func: (_a: string, _b: number, cb: StatsCb) => void, opts: MockStatsdCallbackOptions = {}) {
+function mockStatsdCallback(func: (_a: string, _b: number, _t: Tags, cb: StatsCb) => void, opts: MockStatsdCallbackOptions = {}) {
     const {delay = 50, error = undefined} = opts;
 
-    mocked(func).mockImplementation((_a, _b, cb) => {
+    mocked(func).mockImplementation((_a, _b, _t, cb) => {
         setTimeout(() => cb(error, undefined), delay);
     });
 }
