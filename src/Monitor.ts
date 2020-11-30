@@ -51,7 +51,7 @@ class Monitor {
         const startTime = Date.now();
 
         if (this.config.shouldMonitorExecutionStart) {
-            this.increment(`${name}.start`);
+            this.increment(`${name}.start`, 1, options?.tags);
             this.monitoredLogger(level, `${name}.start`, {extra: context});
         }
 
@@ -93,14 +93,14 @@ class Monitor {
         result: Unpromisify<T>,
         name: string,
         startTime: number,
-        {shouldMonitorSuccess, context, parseResult, logResult, level}: MonitoredOptions<T>
+        {shouldMonitorSuccess, context, parseResult, logResult, level, tags}: MonitoredOptions<T>
     ): Unpromisify<T> => {
         const executionTime = Date.now() - startTime;
 
         if (shouldMonitorSuccess?.(result) ?? true) {
-            this.increment(`${name}.success`);
-            this.gauge(`${name}.ExecutionTime`, executionTime);
-            this.timing(`${name}.ExecutionTime`, executionTime);
+            this.increment(`${name}.success`, 1, tags);
+            this.gauge(`${name}.ExecutionTime`, executionTime, tags);
+            this.timing(`${name}.ExecutionTime`, executionTime, tags);
         }
 
         if (!this.config.disableSuccessLogs) {
@@ -119,10 +119,10 @@ class Monitor {
     private onErrorAsync = async (
         err,
         name: string,
-        {shouldMonitorError, context, logAsError, logErrorAsInfo, parseError}: MonitoredOptions<never>
+        {shouldMonitorError, context, logAsError, logErrorAsInfo, parseError, tags}: MonitoredOptions<never>
     ) => {
         if (shouldMonitorError && !shouldMonitorError(err)) throw err;
-        this.increment(`${name}.error`);
+        this.increment(`${name}.error`, 1, tags);
         this.logger.error(
             `${name}.error`,
             await safe(parseError || this.defaultParseError)(err),
@@ -136,10 +136,10 @@ class Monitor {
     private onErrorSync = (
         err,
         name: string,
-        {shouldMonitorError, context, logAsError, logErrorAsInfo, parseError}: MonitoredOptions<never>
+        {shouldMonitorError, context, logAsError, logErrorAsInfo, parseError, tags}: MonitoredOptions<never>
     ) => {
         if (shouldMonitorError && shouldMonitorError(err)) throw err;
-        this.increment(`${name}.error`);
+        this.increment(`${name}.error`, 1, tags);
         this.logger.error(
             `${name}.error`,
             safe(parseError || this.defaultParseError)(err),

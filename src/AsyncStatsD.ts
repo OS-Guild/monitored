@@ -1,4 +1,4 @@
-import {StatsD, ClientOptions} from 'hot-shots';
+import {StatsD, ClientOptions, Tags} from 'hot-shots';
 import {promisify} from 'util';
 import {timeoutPromise} from './utils';
 import {Logger} from './Logger';
@@ -11,9 +11,9 @@ export class AsyncStatsD {
     private promiseCount: number;
     private pendingPromises: Record<number, Promise<any>>;
 
-    private _increment: (name: string, value: number) => Promise<void>;
-    private _gauge: (name: string, value: number) => Promise<void>;
-    private _timing: (name: string, value: number) => Promise<void>;
+    private _increment: (name: string, value: number, tags?: Tags) => Promise<void>;
+    private _gauge: (name: string, value: number, tags?: Tags) => Promise<void>;
+    private _timing: (name: string, value: number, tags?: Tags) => Promise<void>;
     close: () => Promise<void>;
 
     constructor(logger: Logger, options?: ClientOptions) {
@@ -32,25 +32,25 @@ export class AsyncStatsD {
         return this.client;
     }
 
-    increment = async (name: string, value: number = 1) => {
+    increment = async (name: string, value: number = 1, tags?: Tags) => {
         try {
-            await this.wrapStatsdPromise(this._increment(name, value));
+            await this.wrapStatsdPromise(this._increment(name, value, tags));
         } catch (err) {
             this.logger.error(`Failed to send increment: ${name}`, err);
         }
     };
 
-    gauge = async (name: string, value: number) => {
+    gauge = async (name: string, value: number, tags?: Tags) => {
         try {
-            await this.wrapStatsdPromise(this._gauge(name, value));
+            await this.wrapStatsdPromise(this._gauge(name, value, tags));
         } catch (err) {
             this.logger.error(`Failed to send gauge: ${name}`, err);
         }
     };
 
-    timing = async (name: string, value: number) => {
+    timing = async (name: string, value: number, tags?: Tags) => {
         try {
-            await this.wrapStatsdPromise(this._timing(name, value));
+            await this.wrapStatsdPromise(this._timing(name, value, tags));
         } catch (err) {
             this.logger.error(`Failed to send timing: ${name}`, err);
         }
