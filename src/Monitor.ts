@@ -35,7 +35,7 @@ class Monitor {
             if (options.serviceName) {
                 prefixesArray.push(options.serviceName);
             }
-            const prefix = `${prefixesArray.join('.')}.`;
+            const prefix = `${prefixesArray.filter(element => element).join('.')}.`;
 
             this.statsdClient = new AsyncStatsD(this.logger, {
                 port: port ?? 8125,
