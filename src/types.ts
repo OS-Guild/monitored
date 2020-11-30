@@ -1,4 +1,4 @@
-import {ClientOptions as StatsdClientOptions} from 'hot-shots';
+import {ClientOptions as StatsdClientOptions, Tags as StatsdTags} from 'hot-shots';
 
 interface StatsdOptions extends Omit<StatsdClientOptions, 'prefix'> {
   apiKey: string;
