@@ -1,6 +1,19 @@
-# monitored :mag:
+<div align="center">
+
+# monitored :mag: 
+
+[![Dependency Status][david-image]][david-url]
+[![DevDependency Status][david-dev-image]][david-dev-url]
 
 A utility for monitoring services
+
+</div>
+
+# Quick start
+
+``yarn add monitored``
+
+# Examples
 
 # API
 
@@ -106,3 +119,12 @@ await monitor.flush(timeout: number = 2000)
 1. Create `.env` file with `STATSD_API_KEY` and `STATSD_HOST` values
 2. Run `yarn example`
 3. Verify manually that console logs and metrics in the statsd server are valid
+
+## Contributing
+Before creating an issue, please ensure that it hasn't already been reported/suggested, and double-check the documentation.
+See the [Contribution Guidelines](https://github.com/Soluto/monitored/blob/master/.github/CONTRIBUTING.md) if you'd like to submit a PR.
+
+[david-image]: https://img.shields.io/david/Soluto/monitored.svg
+[david-url]: https://david-dm.org/Soluto/monitored
+[david-dev-image]: https://img.shields.io/david/dev/Soluto/monitored.svg?label=devDependencies
+[david-dev-url]: https://david-dm.org/Soluto/monitored?type=dev
