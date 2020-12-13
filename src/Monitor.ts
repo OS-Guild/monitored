@@ -1,7 +1,6 @@
 import {safe} from './utils';
 import {MonitorOptions, MonitoredOptions, Unpromisify} from './types';
 import {emptyLogger, consoleLogger} from './loggers';
-import parseError from './parseError';
 import {AsyncStatsD} from './AsyncStatsD';
 import {Logger} from './Logger';
 
@@ -15,7 +14,6 @@ class Monitor {
     private statsdClient: AsyncStatsD | undefined;
     private config: Config;
     private logger: Logger;
-    private defaultParseError: (e: any) => any;
 
     constructor(options: MonitorOptions) {
         this.config = {
@@ -27,7 +25,6 @@ class Monitor {
         this.logger = new Logger(options.mock ? emptyLogger : options.logging?.logger ?? consoleLogger, {
             logErrorsAsWarnings: options.logging?.logErrorsAsWarnings,
         });
-        this.defaultParseError = options.logging?.defaultParseError ?? parseError;
 
         if (options.statsd) {
             const {apiKey, root, port, ...restStatsdOptions} = options.statsd;
@@ -35,7 +32,7 @@ class Monitor {
             if (options.serviceName) {
                 prefixesArray.push(options.serviceName);
             }
-            const prefix = `${prefixesArray.filter(element => element).join('.')}.`;
+            const prefix = `${prefixesArray.join('.')}.`;
 
             this.statsdClient = new AsyncStatsD(this.logger, {
                 port: port ?? 8125,
@@ -119,34 +116,38 @@ class Monitor {
     private onErrorAsync = async (
         err,
         name: string,
-        {shouldMonitorError, context, logAsError, logErrorAsInfo, parseError, tags}: MonitoredOptions<never>
+        {shouldMonitorError, context, logAsError, logErrorAsInfo, tags}: MonitoredOptions<never>
     ) => {
-        if (shouldMonitorError && !shouldMonitorError(err)) throw err;
-        this.increment(`${name}.error`, 1, tags);
-        this.logger.error(
-            `${name}.error`,
-            await safe(parseError || this.defaultParseError)(err),
-            context,
-            logAsError,
-            logErrorAsInfo
-        );
+        if (shouldMonitorError?.(err) ?? true) {
+            this.increment(`${name}.error`, 1, tags);
+            this.logger.error(
+                `${name}.error`,
+                err,
+                context,
+                logAsError,
+                logErrorAsInfo
+            );
+        }
+        
         throw err;
     };
 
     private onErrorSync = (
         err,
         name: string,
-        {shouldMonitorError, context, logAsError, logErrorAsInfo, parseError, tags}: MonitoredOptions<never>
+        {shouldMonitorError, context, logAsError, logErrorAsInfo, tags}: MonitoredOptions<never>
     ) => {
-        if (shouldMonitorError && shouldMonitorError(err)) throw err;
-        this.increment(`${name}.error`, 1, tags);
-        this.logger.error(
-            `${name}.error`,
-            safe(parseError || this.defaultParseError)(err),
-            context,
-            logAsError,
-            logErrorAsInfo
-        );
+        if (shouldMonitorError?.(err) ?? true) {
+            this.increment(`${name}.error`, 1, tags);
+            this.logger.error(
+                `${name}.error`,
+                err,
+                context,
+                logAsError,
+                logErrorAsInfo
+            );
+        }
+        
         throw err;
     };
 }
