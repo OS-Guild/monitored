@@ -28,10 +28,7 @@ class Monitor {
 
         if (options.statsd) {
             const {apiKey, root, port, ...restStatsdOptions} = options.statsd;
-            const prefixesArray = [apiKey, root];
-            if (options.serviceName) {
-                prefixesArray.push(options.serviceName);
-            }
+            const prefixesArray = [apiKey, root, options.serviceName].filter(Boolean);
             const prefix = `${prefixesArray.join('.')}.`;
 
             this.statsdClient = new AsyncStatsD(this.logger, {

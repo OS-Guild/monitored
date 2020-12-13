@@ -27,9 +27,6 @@ jest.mock('../src/loggers', () => ({
         error: jest.fn(),
     },
 }));
-jest.mock('../src/parseError', () => ({
-    default: err => err,
-}));
 
 const statsdOptions: MonitorOptions['statsd'] = {
     apiKey: 'key',
@@ -280,28 +277,6 @@ describe('Monitor', () => {
                             expect(mocked(consoleLogger.error)).toHaveBeenCalledWith('test.error', {
                                 err: mockError,
                                 extra: context
-                            });
-                        }
-                    });
-
-                    test('with parseError', async () => {
-                        const monitor = new Monitor({...defaultMonitorOptions});
-                        const mockParsedError = 'blabla';
-
-                        try {
-                            const res = monitor.monitored('test', mockFunc, {parseError: () => mockParsedError});
-
-                            if (isAsync) {
-                                await res;
-                            }
-
-                            fail('Should not success');
-                        } catch (err) {
-                            expect(err).toEqual(mockError);
-
-                            expect(mocked(consoleLogger.error)).toHaveBeenCalledWith('test.error', {
-                                err: mockParsedError,
-                                extra: undefined
                             });
                         }
                     });
