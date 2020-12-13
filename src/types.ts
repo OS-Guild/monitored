@@ -14,7 +14,6 @@ export type MonitorOptions = {
         logger: any;
         logErrorsAsWarnings?: boolean;
         disableSuccessLogs?: boolean;
-        defaultParseError?: (e: any) => any;
     };
     shouldMonitorExecutionStart?: boolean;
     mock?: boolean;
@@ -26,7 +25,6 @@ export type MonitoredOptions<T> = {
   context?: any;
   logResult?: boolean;
   parseResult?: (r: Unpromisify<T>) => any;
-  parseError?: (e: any) => any;
   level?: 'info' | 'debug';
   logAsError?: boolean;
   logErrorAsInfo?: boolean,

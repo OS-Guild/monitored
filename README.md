@@ -34,8 +34,6 @@ setGlobalInstance(new Monitor({
     logging: {
         logger,
         logErrorsAsWarnings?: true,
-        defaultParseError?: e => new Error(e.message + " defaultParseError")
-
     },
     statsd: {
         apiKey: 'STATSD_API_KEY',

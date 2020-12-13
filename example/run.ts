@@ -7,7 +7,6 @@ setGlobalInstance(new Monitor({
     logging: {
         logger: {warn: console.warn, info: console.info, debug: console.debug, error: console.error},
         logErrorsAsWarnings: true,
-        defaultParseError: _e => 'defaultParseError',
     },
 }));
 
@@ -19,7 +18,7 @@ try {
         () => {
             throw 'something';
         },
-        {logAsError: true, parseError: () => 'wrong!'}
+        {logAsError: true}
     );
 } catch (e) {
     console.log('caught foo2', e);
