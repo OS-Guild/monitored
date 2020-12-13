@@ -75,7 +75,6 @@ type MonitoredOptions = {
     context?; //add more inforamtion to the logs
     logResult?: boolean; //should write log of the method start and success
     parseResult?: (e: any) => any; //custom parser for result (in case it is logged)
-    parseError?: (e: any) => any; //custom parser for different types of errors
     level?: 'info' | 'debug'; //which log level to write (debug is the default)
     logAsError?: boolean; //enables to write error log in case the global `logErrorsAsWarnings` is on
     logErrorAsInfo?: boolean //enables to write the errpr as info log
