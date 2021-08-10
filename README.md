@@ -1,118 +1,147 @@
-<div align="center">
+<style>
+    .header {
+        margin: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 64px;
+        max-width: 600px;
+    }
+    p {
+        margin-bottom: 16px;
+    }
+</style>
 
-# monitored :mag: 
+<div class="header">
+
+# monitored 🕵️‍♀️ 
+
+A utility for monitoring services
+Monitored is a wrapper function that writes success/error logs and [StatsD](https://github.com/statsd/statsd) metrics (gague, increment, timing) after execution. It supports both asynchronous and synchronous functions.
+
 
 [![Dependency Status][david-image]][david-url]
 [![DevDependency Status][david-dev-image]][david-dev-url]
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/soluto/tweek/blob/master/LICENSE.md)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier) 
-
-A utility for monitoring services
 
 </div>
 
 # Quick start
 
-``yarn add monitored``
-
-# Examples
-
-# API
-
-### setGlobalInstance
-
-In order to wire this pacakge you need to pass `Options` object.
-
-`serviceName` - represents the name of the service you are monitoring (mandatory)
-
-`logger` - writes success and error logs with the passed in logger (optional)
-
-`statsd` - writes metrics to statsd server (optional)
-
+## Yarn
+```bash
+yarn add monitored
 ```
-setGlobalInstance(new Monitor({
+## Npm
+```bash
+npm install --save monitored
+```
+<br>
+
+
+# Initialize
+
+## Call `setGlobalInstance` on the root of the project
+
+To wire this package, you need to pass `Options` object.
+
+`serviceName` — Represents the name of the service you are monitoring (mandatory)
+
+`logger` — Writes success and error logs with the passed in logger (optional)
+
+`statsd` — Writes metrics to StatsD server (optional)
+
+`mock` — Writes the metrics to logs instead of StatsD for debugging. defaults to false (optional)
+
+`shouldMonitorExecutionStart` — When true will log execution start and will increment a metrics. defaults to true (optional)
+
+`disableSuccessLogs` — When true, will not send success log. defaults to false (optional)
+
+```ts
+setGlobalInstance(
+  new Monitor({
     serviceName: 'monitored-example',
     logging: {
-        logger,
-        logErrorsAsWarnings?: true,
+      logger: logger,
+      logErrorsAsWarnings: false,
+      disableSuccessLogs: false,
     },
     statsd: {
-        apiKey: 'STATSD_API_KEY',
-        root: 'testing',
-        host: 'STATSD_HOST',
+      apiKey: 'STATSD_API_KEY',
+      root: 'testing',
+      host: 'STATSD_HOST',
+      mock: false,
     },
-    shouldMonitorExecutionStart?: boolean; //when true will log execution start and will increment a metrics. defaults to true
-}));
+    shouldMonitorExecutionStart: true,
+  }),
+);
+```
+# API
+## `monitored`
+
+Monitored supports both **Asynchronous** and **Synchronous** functions:
+
+Async function:
+```ts
+const result = await monitored('functionName', async () => console.log('example'));
 ```
 
-### monitored
-
-Wrapper function that write success/error logs and statsd metrics (gague, increment, timing) after execution.
-It supports both asynchronous and synchronous functions:
-
-```
-
-const asyncFunc1 = monitored('foo1', () => {
-    console.log('bar1');
-    return Promise.resolve();
-});
-
-const asyncFunc2 = monitored('foo2', async () => {
-    await Promise.resolve();
-    console.log('bar1');
-});
-
-const syncFunc = monitored('foo3', () => {
-    console.log('bar2');
+Sync function:
+```ts
+const result = monitored('functionName', () => {
+    console.log('example');
 });
 ```
 
 You can pass `options` argument to `monitored`:
 
-```
+```ts
 type MonitoredOptions = {
-    context?; //add more inforamtion to the logs
+    context?; //add more information to the logs
     logResult?: boolean; //should write log of the method start and success
     parseResult?: (e: any) => any; //custom parser for result (in case it is logged)
     level?: 'info' | 'debug'; //which log level to write (debug is the default)
     logAsError?: boolean; //enables to write error log in case the global `logErrorsAsWarnings` is on
-    logErrorAsInfo?: boolean //enables to write the errpr as info log
+    logErrorAsInfo?: boolean //enables to write the error as info log
     shouldMonitorError: e => boolean //determines if error should be monitored and logged, defaults to true
     shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true 
 
 };
 ```
 
-```
+```ts
 const foo3 = monitored('foo3', () => {
     console.log('bar3');
 }, {context: {id: 'some context'}});
 ```
 
-Also you can log the function result by setting `logResult` to `true`:
+Also, you can log the function result by setting `logResult` to `true`:
 
-```
+```ts
 const foo4 = monitored('foo4', () => {
     console.log('bar4');
 }, {context: {id: 'some context'}, logResult: true});
 ```
 
-Full usage documentation is details in `Testing` section
+Full usage documentation is detailed in `Testing` section
 
-### getStatsdClient
+## `getStatsdClient`
 
-Returns the StatsD client directly, in order to write custom metrics
+Returns the StatsD client directly, to write custom metrics
 
-### flush
+## `flush`
 
-Wait for all current metric to be sent to server.
-You should use it in the end of lambda execution to make sure all metrics are sent.
+Wait until all current metrics are sent to the server.
+We recommend using it at the end of lambda execution to make sure all metrics are sent.
 
-```
+```ts
 await monitor.flush(timeout: number = 2000)
 ```
 
 
-## Testing
+# Testing
 
 1. Create `.env` file with `STATSD_API_KEY` and `STATSD_HOST` values
 2. Run `yarn example`
@@ -123,7 +152,9 @@ Before creating an issue, please ensure that it hasn't already been reported/sug
 See the [Contribution Guidelines](https://github.com/Soluto/monitored/blob/master/.github/CONTRIBUTING.md) if you'd like to submit a PR.
 
 ## License
-[MIT](LICENSE) © [Soluto](https://github.com/Soluto)
+Licensed under the MIT License, Copyright © 2020-present [Soluto](https://github.com/Soluto).
+
+See [LICENSE](LICENSE) for more information | Developed with ❤️ by soluto [Soluto](https://github.com/Soluto)
 
 [david-image]: https://img.shields.io/david/Soluto/monitored.svg
 [david-url]: https://david-dm.org/Soluto/monitored
