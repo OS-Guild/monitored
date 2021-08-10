@@ -81,25 +81,11 @@ setGlobalInstance(
 # API
 ## `monitored`
 
-Monitored supports both **Asynchronous** and **Synchronous** functions:
-
-Async function:
-```ts
-const result = await monitored('functionName', async () => console.log('example'));
-```
-
-Sync function:
-```ts
-const result = monitored('functionName', () => {
-    console.log('example');
-});
-```
-
 You can pass `options` argument to `monitored`:
 
 ```ts
 type MonitoredOptions = {
-    context?; //add more information to the logs
+    context?: any; //add more information to the logs
     logResult?: boolean; //should write log of the method start and success
     parseResult?: (e: any) => any; //custom parser for result (in case it is logged)
     level?: 'info' | 'debug'; //which log level to write (debug is the default)
@@ -107,40 +93,49 @@ type MonitoredOptions = {
     logErrorAsInfo?: boolean //enables to write the error as info log
     shouldMonitorError: e => boolean //determines if error should be monitored and logged, defaults to true
     shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true 
-
 };
 ```
+### Examples:
+#### Monitored supports both **Asynchronous** and **Synchronous** functions:
 
 ```ts
-const foo3 = monitored('foo3', () => {
-    console.log('bar3');
+//Async function:
+const result = await monitored('functionName', async () => console.log('example'));
+
+//Sync function:
+const result = monitored('functionName', () => {
+    console.log('example');
+});
+```
+
+#### You can use context to add more information to the log such as user ID
+
+```ts
+const result = monitored('functionName', () => {
+    console.log('example');
 }, {context: {id: 'some context'}});
 ```
 
-Also, you can log the function result by setting `logResult` to `true`:
+#### Also, you can log the function result by setting `logResult` to `true`:
 
 ```ts
-const foo4 = monitored('foo4', () => {
-    console.log('bar4');
+const foo4 = monitored('functionName', () => {
+    console.log('example');
 }, {context: {id: 'some context'}, logResult: true});
 ```
 
-Full usage documentation is detailed in `Testing` section
-
 ## `getStatsdClient`
 
-Returns the StatsD client directly, to write custom metrics
+Returns the StatsD client directly. Helps with writing custom metrics
 
 ## `flush`
 
-Wait until all current metrics are sent to the server.
+Wait until all current metrics are sent to the server. <br>
 We recommend using it at the end of lambda execution to make sure all metrics are sent.
 
 ```ts
 await monitor.flush(timeout: number = 2000)
 ```
-
-
 # Testing
 
 1. Create `.env` file with `STATSD_API_KEY` and `STATSD_HOST` values
