@@ -90,6 +90,23 @@ const result = monitored('functionName', () => {
 });
 ```
 
+<br>
+
+### You can pass a `options` argument to `monitored`:
+
+```ts
+type MonitoredOptions = {
+    context?: any; //add more information to the logs
+    logResult?: boolean; //should write log of the method start and success
+    parseResult?: (e: any) => any; //custom parser for result (in case it is logged)
+    level?: 'info' | 'debug'; //which log level to write (debug is the default)
+    logAsError?: boolean; //enables to write error log in case the global `logErrorsAsWarnings` is on
+    logErrorAsInfo?: boolean //enables to write the error as info log
+    shouldMonitorError: e => boolean //determines if error should be monitored and logged, defaults to true
+    shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true 
+};
+```
+
 #### You can use `context` to add more information to the log such as user ID
 
 ```ts
@@ -104,21 +121,6 @@ const result = monitored('functionName', () => {
 const result = monitored('functionName', () => {
     console.log('example');
 }, {context: {id: 'some context'}, logResult: true});
-```
-
-#### You can pass `options` argument to `monitored`:
-
-```ts
-type MonitoredOptions = {
-    context?: any; //add more information to the logs
-    logResult?: boolean; //should write log of the method start and success
-    parseResult?: (e: any) => any; //custom parser for result (in case it is logged)
-    level?: 'info' | 'debug'; //which log level to write (debug is the default)
-    logAsError?: boolean; //enables to write error log in case the global `logErrorsAsWarnings` is on
-    logErrorAsInfo?: boolean //enables to write the error as info log
-    shouldMonitorError: e => boolean //determines if error should be monitored and logged, defaults to true
-    shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true 
-};
 ```
 
 <br>
