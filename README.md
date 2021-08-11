@@ -1,23 +1,9 @@
-<style>
-    .header {
-        margin: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        margin-bottom: 64px;
-        max-width: 600px;
-    }
-    p {
-        margin-bottom: 16px;
-    }
-</style>
-
-<div class="header">
+<div align="center">
 
 # monitored 🕵️‍♀️ 
 
 A utility for monitoring services
+
 Monitored is a wrapper function that writes success/error logs and [StatsD](https://github.com/statsd/statsd) metrics (gague, increment, timing) after execution. It supports both asynchronous and synchronous functions.
 
 
@@ -28,36 +14,34 @@ Monitored is a wrapper function that writes success/error logs and [StatsD](http
 
 </div>
 
-# Quick start
+<br>
+<br>
 
-## Yarn
+## Quick start
+
+### Yarn
 ```bash
 yarn add monitored
 ```
-## Npm
+### Npm
 ```bash
 npm install --save monitored
 ```
+
 <br>
 
+## Initialize
+### Call `setGlobalInstance` at the root of the project
 
-# Initialize
+To wire this package, you need to pass an `Options` object.
 
-## Call `setGlobalInstance` on the root of the project
-
-To wire this package, you need to pass `Options` object.
-
-`serviceName` — Represents the name of the service you are monitoring (mandatory)
-
-`logger` — Writes success and error logs with the passed in logger (optional)
-
-`statsd` — Writes metrics to StatsD server (optional)
-
-`mock` — Writes the metrics to logs instead of StatsD for debugging. defaults to false (optional)
-
-`shouldMonitorExecutionStart` — When true will log execution start and will increment a metrics. defaults to true (optional)
-
-`disableSuccessLogs` — When true, will not send success log. defaults to false (optional)
+* `serviceName` — Represents the name of the service you are monitoring (mandatory)
+* `logger` — Writes success and error logs with the passed in logger (optional)
+* `statsd` — Writes metrics to StatsD server (optional)
+* `mock` — Writes the metrics to logs instead of StatsD for debugging. defaults to false (optional)
+* `shouldMonitorExecutionStart` — When true will log execution start and will increment a metrics. defaults to true (optional)
+* `disableSuccessLogs` — When true, will not send success log. defaults to false (optional)
+<br>
 
 ```ts
 setGlobalInstance(
@@ -78,10 +62,30 @@ setGlobalInstance(
   }),
 );
 ```
-# API
-## `monitored`
 
-You can pass `options` argument to `monitored`:
+<br>
+
+## API
+
+### `monitored`
+A wrapper function that writes success/error logs and StatsD metrics (gague, increment, timing) after execution.
+<br>
+
+#### `monitored` supports both **Asynchronous** and **Synchronous** functions:
+
+```ts
+//Async function:
+const result = await monitored('functionName', async () => console.log('example'));
+
+//Sync function:
+const result = monitored('functionName', () => {
+    console.log('example');
+});
+```
+
+<br>
+
+### You can also pass a `options` argument to `monitored`:
 
 ```ts
 type MonitoredOptions = {
@@ -95,20 +99,8 @@ type MonitoredOptions = {
     shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true 
 };
 ```
-### Examples:
-#### Monitored supports both **Asynchronous** and **Synchronous** functions:
 
-```ts
-//Async function:
-const result = await monitored('functionName', async () => console.log('example'));
-
-//Sync function:
-const result = monitored('functionName', () => {
-    console.log('example');
-});
-```
-
-#### You can use context to add more information to the log such as user ID
+#### You can use `context` to add more information to the log such as user ID
 
 ```ts
 const result = monitored('functionName', () => {
@@ -119,16 +111,16 @@ const result = monitored('functionName', () => {
 #### Also, you can log the function result by setting `logResult` to `true`:
 
 ```ts
-const foo4 = monitored('functionName', () => {
+const result = monitored('functionName', () => {
     console.log('example');
 }, {context: {id: 'some context'}, logResult: true});
 ```
 
-## `getStatsdClient`
+### `getStatsdClient`
 
 Returns the StatsD client directly. Helps with writing custom metrics
 
-## `flush`
+### `flush`
 
 Wait until all current metrics are sent to the server. <br>
 We recommend using it at the end of lambda execution to make sure all metrics are sent.
@@ -136,20 +128,26 @@ We recommend using it at the end of lambda execution to make sure all metrics ar
 ```ts
 await monitor.flush(timeout: number = 2000)
 ```
-# Testing
+<br>
+
+## Testing
 
 1. Create `.env` file with `STATSD_API_KEY` and `STATSD_HOST` values
 2. Run `yarn example`
 3. Verify manually that console logs and metrics in the statsd server are valid
 
+<br>
+
 ## Contributing
 Before creating an issue, please ensure that it hasn't already been reported/suggested, and double-check the documentation.
 See the [Contribution Guidelines](https://github.com/Soluto/monitored/blob/master/.github/CONTRIBUTING.md) if you'd like to submit a PR.
 
-## License
-Licensed under the MIT License, Copyright © 2020-present [Soluto](https://github.com/Soluto).
+<br>
 
-See [LICENSE](LICENSE) for more information | Developed with ❤️ by soluto [Soluto](https://github.com/Soluto)
+## License
+Licensed under the MIT [License](LICENSE), Copyright © 2020-present [Soluto](https://github.com/Soluto).
+
+Crafted by the [Soluto](https://github.com/Soluto) Open Sourcerers🧙
 
 [david-image]: https://img.shields.io/david/Soluto/monitored.svg
 [david-url]: https://david-dm.org/Soluto/monitored
