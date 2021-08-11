@@ -35,17 +35,17 @@ npm install --save monitored
 
 To wire this package, you need to pass an `Options` object.
 
-- `serviceName` — Represents the name of the service you are monitoring (mandatory)
+* `serviceName` — Represents the name of the service you are monitoring (mandatory)
 
-- `logger` — Writes success and error logs with the passed in logger (optional)
+* `logger` — Writes success and error logs with the passed in logger (optional)
 
-- `statsd` — Writes metrics to StatsD server (optional)
+* `statsd` — Writes metrics to StatsD server (optional)
 
-- `mock` — Writes the metrics to logs instead of StatsD for debugging. defaults to false (optional)
+* `mock` — Writes the metrics to logs instead of StatsD for debugging. defaults to false (optional)
 
-- `shouldMonitorExecutionStart` — When true will log execution start and will increment a metrics. defaults to true (optional)
+* `shouldMonitorExecutionStart` — When true will log execution start and will increment a metrics. defaults to true (optional)
 
-- `disableSuccessLogs` — When true, will not send success log. defaults to false (optional)
+* `disableSuccessLogs` — When true, will not send success log. defaults to false (optional)
 <br>
 
 ```ts
@@ -72,7 +72,6 @@ setGlobalInstance(
 <br>
 
 ## API
-<br>
 
 ### `monitored`
 
@@ -90,6 +89,19 @@ type MonitoredOptions = {
     shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true 
 };
 ```
+
+### `getStatsdClient`
+
+Returns the StatsD client directly. Helps with writing custom metrics
+
+### `flush`
+
+Wait until all current metrics are sent to the server. <br>
+We recommend using it at the end of lambda execution to make sure all metrics are sent.
+
+```ts
+await monitor.flush(timeout: number = 2000)
+```
 <br>
 
 ### API Examples:
@@ -105,7 +117,6 @@ const result = monitored('functionName', () => {
     console.log('example');
 });
 ```
-<br>
 
 #### You can use context to add more information to the log such as user ID
 
@@ -114,7 +125,6 @@ const result = monitored('functionName', () => {
     console.log('example');
 }, {context: {id: 'some context'}});
 ```
-<br>
 
 #### Also, you can log the function result by setting `logResult` to `true`:
 
@@ -123,26 +133,6 @@ const foo4 = monitored('functionName', () => {
     console.log('example');
 }, {context: {id: 'some context'}, logResult: true});
 ```
-
-<br>
-<br>
-
-### `getStatsdClient`
-
-Returns the StatsD client directly. Helps with writing custom metrics
-
-<br>
-<br>
-
-### `flush`
-
-Wait until all current metrics are sent to the server. <br>
-We recommend using it at the end of lambda execution to make sure all metrics are sent.
-
-```ts
-await monitor.flush(timeout: number = 2000)
-```
-
 <br>
 <br>
 
