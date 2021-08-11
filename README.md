@@ -29,7 +29,6 @@ npm install --save monitored
 ```
 
 <br>
-<br>
 
 ## Initialize
 ### Call `setGlobalInstance` at the root of the project
@@ -37,15 +36,10 @@ npm install --save monitored
 To wire this package, you need to pass an `Options` object.
 
 * `serviceName` — Represents the name of the service you are monitoring (mandatory)
-
 * `logger` — Writes success and error logs with the passed in logger (optional)
-
 * `statsd` — Writes metrics to StatsD server (optional)
-
 * `mock` — Writes the metrics to logs instead of StatsD for debugging. defaults to false (optional)
-
 * `shouldMonitorExecutionStart` — When true will log execution start and will increment a metrics. defaults to true (optional)
-
 * `disableSuccessLogs` — When true, will not send success log. defaults to false (optional)
 <br>
 
@@ -69,7 +63,6 @@ setGlobalInstance(
 );
 ```
 
-<br>
 <br>
 
 ## API
@@ -123,13 +116,9 @@ const result = monitored('functionName', () => {
 }, {context: {id: 'some context'}, logResult: true});
 ```
 
-<br>
-
 ### `getStatsdClient`
 
 Returns the StatsD client directly. Helps with writing custom metrics
-
-<br>
 
 ### `flush`
 
@@ -140,7 +129,6 @@ We recommend using it at the end of lambda execution to make sure all metrics ar
 await monitor.flush(timeout: number = 2000)
 ```
 <br>
-<br>
 
 ## Testing
 
@@ -149,13 +137,11 @@ await monitor.flush(timeout: number = 2000)
 3. Verify manually that console logs and metrics in the statsd server are valid
 
 <br>
-<br>
 
 ## Contributing
 Before creating an issue, please ensure that it hasn't already been reported/suggested, and double-check the documentation.
 See the [Contribution Guidelines](https://github.com/Soluto/monitored/blob/master/.github/CONTRIBUTING.md) if you'd like to submit a PR.
 
-<br>
 <br>
 
 ## License
