@@ -92,7 +92,7 @@ const result = monitored('functionName', () => {
 
 <br>
 
-### You can pass a `options` argument to `monitored`:
+### You can also pass a `options` argument to `monitored`:
 
 ```ts
 type MonitoredOptions = {
