@@ -165,7 +165,7 @@ See the [Contribution Guidelines](https://github.com/Soluto/monitored/blob/maste
 ## License
 Licensed under the MIT [License](LICENSE), Copyright © 2020-present [Soluto](https://github.com/Soluto).
 
-Developed by [Soluto](https://github.com/Soluto)'s Open Sourcerers 🧙 
+Crafted by the [Soluto](https://github.com/Soluto) Open Sourcerers🧙
 
 [david-image]: https://img.shields.io/david/Soluto/monitored.svg
 [david-url]: https://david-dm.org/Soluto/monitored
