@@ -3,6 +3,7 @@
 # monitored 🕵️‍♀️ 
 
 A utility for monitoring services
+
 Monitored is a wrapper function that writes success/error logs and [StatsD](https://github.com/statsd/statsd) metrics (gague, increment, timing) after execution. It supports both asynchronous and synchronous functions.
 
 
@@ -74,8 +75,10 @@ setGlobalInstance(
 ## API
 
 ### `monitored`
+A wrapper function that writes success/error logs and StatsD metrics (gague, increment, timing) after execution.
+<br>
 
-#### Monitored supports both **Asynchronous** and **Synchronous** functions:
+#### `monitored` supports both **Asynchronous** and **Synchronous** functions:
 
 ```ts
 //Async function:
@@ -87,7 +90,7 @@ const result = monitored('functionName', () => {
 });
 ```
 
-#### You can use context to add more information to the log such as user ID
+#### You can use `context` to add more information to the log such as user ID
 
 ```ts
 const result = monitored('functionName', () => {
