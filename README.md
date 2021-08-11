@@ -75,37 +75,6 @@ setGlobalInstance(
 
 ### `monitored`
 
-You can pass `options` argument to `monitored`:
-
-```ts
-type MonitoredOptions = {
-    context?: any; //add more information to the logs
-    logResult?: boolean; //should write log of the method start and success
-    parseResult?: (e: any) => any; //custom parser for result (in case it is logged)
-    level?: 'info' | 'debug'; //which log level to write (debug is the default)
-    logAsError?: boolean; //enables to write error log in case the global `logErrorsAsWarnings` is on
-    logErrorAsInfo?: boolean //enables to write the error as info log
-    shouldMonitorError: e => boolean //determines if error should be monitored and logged, defaults to true
-    shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true 
-};
-```
-
-### `getStatsdClient`
-
-Returns the StatsD client directly. Helps with writing custom metrics
-
-### `flush`
-
-Wait until all current metrics are sent to the server. <br>
-We recommend using it at the end of lambda execution to make sure all metrics are sent.
-
-```ts
-await monitor.flush(timeout: number = 2000)
-```
-<br>
-
-### API Examples:
-
 #### Monitored supports both **Asynchronous** and **Synchronous** functions:
 
 ```ts
@@ -129,9 +98,41 @@ const result = monitored('functionName', () => {
 #### Also, you can log the function result by setting `logResult` to `true`:
 
 ```ts
-const foo4 = monitored('functionName', () => {
+const result = monitored('functionName', () => {
     console.log('example');
 }, {context: {id: 'some context'}, logResult: true});
+```
+
+#### You can pass `options` argument to `monitored`:
+
+```ts
+type MonitoredOptions = {
+    context?: any; //add more information to the logs
+    logResult?: boolean; //should write log of the method start and success
+    parseResult?: (e: any) => any; //custom parser for result (in case it is logged)
+    level?: 'info' | 'debug'; //which log level to write (debug is the default)
+    logAsError?: boolean; //enables to write error log in case the global `logErrorsAsWarnings` is on
+    logErrorAsInfo?: boolean //enables to write the error as info log
+    shouldMonitorError: e => boolean //determines if error should be monitored and logged, defaults to true
+    shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true 
+};
+```
+
+<br>
+
+### `getStatsdClient`
+
+Returns the StatsD client directly. Helps with writing custom metrics
+
+<br>
+
+### `flush`
+
+Wait until all current metrics are sent to the server. <br>
+We recommend using it at the end of lambda execution to make sure all metrics are sent.
+
+```ts
+await monitor.flush(timeout: number = 2000)
 ```
 <br>
 <br>
