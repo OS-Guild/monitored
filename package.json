@@ -23,9 +23,9 @@
   },
   "homepage": "https://github.com/Soluto/monitored#readme",
   "dependencies": {
-    "@commitlint/cli": "^11.0.0",
-    "@commitlint/config-conventional": "^11.0.0",
-    "hot-shots": "^7.4.0"
+    "@commitlint/cli": "^13.1.0",
+    "@commitlint/config-conventional": "^13.1.0",
+    "hot-shots": "^8.5.0"
   },
   "devDependencies": {
     "@types/jest": "^25.1.0",
