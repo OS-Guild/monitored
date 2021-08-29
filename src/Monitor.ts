@@ -1,8 +1,8 @@
 import {safe} from './utils';
 import {MonitorOptions, MonitoredOptions, Unpromisify} from './types';
 import {emptyLogger, consoleLogger} from './loggers';
-import {AsyncStatsD} from './AsyncStatsD';
 import {Logger} from './Logger';
+import IMetricsProviderClient from './metricsProviderClient/IMetricsProvider';
 
 interface Config {
     serviceName: string;
@@ -11,7 +11,7 @@ interface Config {
 }
 
 class Monitor {
-    private statsdClient: AsyncStatsD | undefined;
+    private metricsProviderClient: IMetricsProviderClient | undefined;
     private config: Config;
     private logger: Logger;
 
@@ -31,12 +31,12 @@ class Monitor {
             const prefixesArray = [apiKey, root, options.serviceName].filter(Boolean);
             const prefix = `${prefixesArray.join('.')}.`;
 
-            this.statsdClient = new AsyncStatsD(this.logger, {
-                port: port ?? 8125,
-                prefix,
-                mock: options.mock,
-                ...restStatsdOptions,
-            });
+            // this.metricsProviderClient = new AsyncStatsD(this.logger, {
+            //     port: port ?? 8125,
+            //     prefix,
+            //     mock: options.mock,
+            //     ...restStatsdOptions,
+            // });
         }
     }
 
@@ -45,7 +45,7 @@ class Monitor {
         const startTime = Date.now();
 
         if (this.config.shouldMonitorExecutionStart) {
-            this.increment(`${name}.start`, 1, options?.tags);
+            this.metricsProviderClient?.onStart(name); // TODO: Support tags
             this.monitoredLogger(level, `${name}.start`, {extra: context});
         }
 
@@ -68,15 +68,7 @@ class Monitor {
         }
     };
 
-    getStatsdClient = () => this.statsdClient;
-
-    increment: AsyncStatsD['increment'] = async (...args) => this.statsdClient?.increment(...args);
-
-    gauge: AsyncStatsD['gauge'] = async (...args) => this.statsdClient?.gauge(...args);
-
-    timing: AsyncStatsD['timing'] = async (...args) => this.statsdClient?.timing(...args);
-
-    flush: AsyncStatsD['flush'] = async (...args) => this.statsdClient?.flush(...args) ?? true;
+    getMonitoringClient = () => this.metricsProviderClient;
 
     monitoredLogger = (level: MonitoredOptions<any>['level'], message, {extra}) => {
         const log = level === 'info' ? this.logger.info : this.logger.debug;
@@ -87,14 +79,12 @@ class Monitor {
         result: Unpromisify<T>,
         name: string,
         startTime: number,
-        {shouldMonitorSuccess, context, parseResult, logResult, level, tags}: MonitoredOptions<T>
+        {shouldMonitorSuccess, context, parseResult, logResult, level}: MonitoredOptions<T> // TODO: Support tags
     ): Unpromisify<T> => {
         const executionTime = Date.now() - startTime;
 
         if (shouldMonitorSuccess?.(result) ?? true) {
-            this.increment(`${name}.success`, 1, tags);
-            this.gauge(`${name}.ExecutionTime`, executionTime, tags);
-            this.timing(`${name}.ExecutionTime`, executionTime, tags);
+            this.metricsProviderClient?.onSuccess(name, executionTime)
         }
 
         if (!this.config.disableSuccessLogs) {
@@ -113,10 +103,11 @@ class Monitor {
     private onErrorAsync = async (
         err,
         name: string,
-        {shouldMonitorError, context, logAsError, logErrorAsInfo, tags}: MonitoredOptions<never>
+        {shouldMonitorError, context, logAsError, logErrorAsInfo}: MonitoredOptions<never> // TODO: Support tags
     ) => {
         if (shouldMonitorError?.(err) ?? true) {
-            this.increment(`${name}.error`, 1, tags);
+            // TODO: support exec time
+            this.metricsProviderClient?.onFailure(name, 0)
             this.logger.error(
                 `${name}.error`,
                 err,
@@ -132,10 +123,11 @@ class Monitor {
     private onErrorSync = (
         err,
         name: string,
-        {shouldMonitorError, context, logAsError, logErrorAsInfo, tags}: MonitoredOptions<never>
+        {shouldMonitorError, context, logAsError, logErrorAsInfo}: MonitoredOptions<never> // TODO: Support tags
     ) => {
         if (shouldMonitorError?.(err) ?? true) {
-            this.increment(`${name}.error`, 1, tags);
+            // TODO: support exec time
+            this.metricsProviderClient?.onFailure(name, 0);
             this.logger.error(
                 `${name}.error`,
                 err,
