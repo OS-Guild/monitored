@@ -2,7 +2,7 @@ import {safe} from './utils';
 import {MonitorOptions, MonitoredOptions, Unpromisify} from './types';
 import {emptyLogger, consoleLogger} from './loggers';
 import {Logger} from './Logger';
-import IMetricsProviderClient from './metricsProviderClient/IMetricsProvider';
+import {IMetricsProvider} from './metricsProviderClient/IMetricsProvider';
 
 interface Config {
     serviceName: string;
@@ -11,7 +11,7 @@ interface Config {
 }
 
 class Monitor {
-    private metricsProviderClient: IMetricsProviderClient | undefined;
+    private metricsProviderClient: IMetricsProvider | undefined;
     private config: Config;
     private logger: Logger;
 
@@ -58,7 +58,7 @@ class Monitor {
                             .then((promiseResult: Unpromisify<T>) =>
                                 this.onResult(promiseResult, name, startTime, options)
                             )
-                            .catch(err => this.onErrorAsync(err, name, options))
+                            .catch((err) => this.onErrorAsync(err, name, options))
                     ))
                 );
             }
@@ -84,7 +84,7 @@ class Monitor {
         const executionTime = Date.now() - startTime;
 
         if (shouldMonitorSuccess?.(result) ?? true) {
-            this.metricsProviderClient?.onSuccess(name, executionTime)
+            this.metricsProviderClient?.onSuccess(name, executionTime);
         }
 
         if (!this.config.disableSuccessLogs) {
@@ -107,16 +107,10 @@ class Monitor {
     ) => {
         if (shouldMonitorError?.(err) ?? true) {
             // TODO: support exec time
-            this.metricsProviderClient?.onFailure(name, 0)
-            this.logger.error(
-                `${name}.error`,
-                err,
-                context,
-                logAsError,
-                logErrorAsInfo
-            );
+            this.metricsProviderClient?.onFailure(name, 0);
+            this.logger.error(`${name}.error`, err, context, logAsError, logErrorAsInfo);
         }
-        
+
         throw err;
     };
 
@@ -128,15 +122,9 @@ class Monitor {
         if (shouldMonitorError?.(err) ?? true) {
             // TODO: support exec time
             this.metricsProviderClient?.onFailure(name, 0);
-            this.logger.error(
-                `${name}.error`,
-                err,
-                context,
-                logAsError,
-                logErrorAsInfo
-            );
+            this.logger.error(`${name}.error`, err, context, logAsError, logErrorAsInfo);
         }
-        
+
         throw err;
     };
 }

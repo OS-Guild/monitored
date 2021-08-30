@@ -2,7 +2,8 @@ import {StatsD, ClientOptions, Tags} from 'hot-shots';
 import {promisify} from 'util';
 import {timeoutPromise} from '../utils';
 import {Logger} from '../Logger';
-import IMetricsProvider from './IMetricsProvider';
+import {IMetricsProvider} from './IMetricsProvider';
+
 const noop = () => {};
 
 export class AsyncStatsD implements IMetricsProvider {
@@ -28,15 +29,16 @@ export class AsyncStatsD implements IMetricsProvider {
         this.close = promisify(this.client.close.bind(this.client));
     }
 
-    onStart =  async (name: string) => this.increment(`${name}.start`, 1);
+    onStart = async (name: string) => this.increment(`${name}.start`, 1);
     onSuccess = async (name: string, executionTime: number) => {
         await Promise.all([
             this.increment(`${name}.success`, 1),
             this.gauge(`${name}.ExecutionTime`, executionTime),
-            this.timing(`${name}.ExecutionTime`, executionTime)])
-        };
-    
-    onFailure =  async (name: string, _: number) => this.increment(`${name}.error`, 1);
+            this.timing(`${name}.ExecutionTime`, executionTime),
+        ]);
+    };
+
+    onFailure = async (name: string, _: number) => this.increment(`${name}.error`, 1);
 
     get statsd() {
         return this.client;
@@ -67,7 +69,7 @@ export class AsyncStatsD implements IMetricsProvider {
     };
 
     flush = async (timeout: number = 2000) => {
-        const remainingPromises = Object.values(this.pendingPromises).map(p => p.catch(noop));
+        const remainingPromises = Object.values(this.pendingPromises).map((p) => p.catch(noop));
 
         if (remainingPromises.length > 0) {
             try {
