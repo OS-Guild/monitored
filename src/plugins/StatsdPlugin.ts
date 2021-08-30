@@ -2,11 +2,19 @@ import {StatsD, ClientOptions, Tags} from 'hot-shots';
 import {promisify} from 'util';
 import {timeoutPromise} from '../utils';
 import {Logger} from '../Logger';
-import {IMetricsProvider} from './IMetricsProvider';
+import {MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 
 const noop = () => {};
 
-export class AsyncStatsD implements IMetricsProvider {
+export interface StatsdPluginOptions extends Omit<ClientOptions, 'prefix'> {
+    serviceName: string;
+    apiKey: string;
+    root: string;
+    host: string;
+    port?: number;
+}
+
+export class StatsdPlugin implements MonitoredPlugin {
     private client: StatsD;
     private logger: Logger;
     private promiseCount: number;
@@ -17,8 +25,19 @@ export class AsyncStatsD implements IMetricsProvider {
     private _timing: (name: string, value: number, tags?: Tags) => Promise<void>;
     close: () => Promise<void>;
 
-    constructor(logger: Logger, options?: ClientOptions) {
+    constructor(logger: Logger, rawOptions: StatsdPluginOptions) {
+        const {apiKey, root, port, ...rest} = rawOptions;
+        const prefixesArray = [apiKey, root, rawOptions.serviceName].filter(Boolean);
+        const prefix = `${prefixesArray.join('.')}.`;
+
+        const options: ClientOptions = {
+            port: port ?? 8125,
+            prefix,
+            ...rest,
+        };
+
         this.client = new StatsD({cacheDns: true, ...options});
+
         this.logger = logger;
         this.promiseCount = 0;
         this.pendingPromises = {};
@@ -29,80 +48,82 @@ export class AsyncStatsD implements IMetricsProvider {
         this.close = promisify(this.client.close.bind(this.client));
     }
 
-    onStart = async (name: string) => this.increment(`${name}.start`, 1);
-    onSuccess = async (name: string, executionTime: number) => {
-        await Promise.all([
-            this.increment(`${name}.success`, 1),
-            this.gauge(`${name}.ExecutionTime`, executionTime),
-            this.timing(`${name}.ExecutionTime`, executionTime),
-        ]);
-    };
+    async onStart({scope, options}: OnStartOptions) {
+        await this.increment(`${scope}.start`, 1, options?.tags);
+    }
 
-    onFailure = async (name: string, _: number) => this.increment(`${name}.error`, 1);
+    async onSuccess({scope, executionTime, options}: OnSuccessOptions) {
+        await Promise.all([
+            this.increment(`${scope}.success`, 1, options?.tags),
+            this.gauge(`${scope}.ExecutionTime`, executionTime, options?.tags),
+            this.timing(`${scope}.ExecutionTime`, executionTime, options?.tags),
+        ]);
+    }
+
+    async onFailure({scope, options}: OnFailureOptions) {
+        await this.increment(`${scope}.error`, 1, options?.tags);
+    }
 
     get statsd() {
         return this.client;
     }
 
-    increment = async (name: string, value: number = 1, tags?: Tags) => {
+    async increment(name: string, value: number = 1, tags?: Tags) {
         try {
             await this.wrapStatsdPromise(this._increment(name, value, tags));
         } catch (err) {
             this.logger.error(`Failed to send increment: ${name}`, err);
         }
-    };
+    }
 
-    gauge = async (name: string, value: number, tags?: Tags) => {
+    async gauge(name: string, value: number, tags?: Tags) {
         try {
             await this.wrapStatsdPromise(this._gauge(name, value, tags));
         } catch (err) {
             this.logger.error(`Failed to send gauge: ${name}`, err);
         }
-    };
+    }
 
-    timing = async (name: string, value: number, tags?: Tags) => {
+    async timing(name: string, value: number, tags?: Tags) {
         try {
             await this.wrapStatsdPromise(this._timing(name, value, tags));
         } catch (err) {
             this.logger.error(`Failed to send timing: ${name}`, err);
         }
-    };
+    }
 
-    flush = async (timeout: number = 2000) => {
+    async flush(timeout: number = 2000) {
         const remainingPromises = Object.values(this.pendingPromises).map((p) => p.catch(noop));
-
-        if (remainingPromises.length > 0) {
-            try {
-                await timeoutPromise(
-                    timeout,
-                    Promise.all(remainingPromises),
-                    'Timeout reached, stopped wait for pending log writes'
-                );
-            } catch (err) {
-                this.logger.error('flush timeout', err);
-
-                return false;
-            }
+        if (!remainingPromises.length) {
+            return true;
         }
 
-        return true;
-    };
+        try {
+            await timeoutPromise(
+                timeout,
+                Promise.all(remainingPromises),
+                'Timeout reached, stopped wait for pending log writes'
+            );
+            return true;
+        } catch (err) {
+            this.logger.error('flush timeout', err);
+            return false;
+        }
+    }
 
-    private wrapStatsdPromise = async <R = void>(prom: Promise<R>): Promise<R> => {
+    private async wrapStatsdPromise<R = void>(prom: Promise<R>): Promise<R> {
         const currentCount = this.incrementPromiseCount();
 
         try {
             this.pendingPromises[currentCount] = prom;
-
             return await this.pendingPromises[currentCount];
         } finally {
             delete this.pendingPromises[currentCount];
         }
-    };
+    }
 
-    private incrementPromiseCount = () => {
+    private incrementPromiseCount() {
         this.promiseCount = (this.promiseCount + 1) % Number.MAX_SAFE_INTEGER;
-
         return this.promiseCount;
-    };
+    }
 }

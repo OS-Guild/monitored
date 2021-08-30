@@ -1,15 +1,8 @@
-import {ClientOptions as StatsdClientOptions, Tags as StatsdTags} from 'hot-shots';
+import {MetricOptions, MonitoredPlugin} from './plugins/types';
 
-interface StatsdOptions extends Omit<StatsdClientOptions, 'prefix'> {
-  apiKey: string;
-  root: string;
-  host: string;
-  port?: number;
-}
-
-export type MonitorOptions = {
+export interface MonitorOptions {
     serviceName: string;
-    statsd?: StatsdOptions;
+    plugins: MonitoredPlugin[];
     logging?: {
         logger: any;
         logErrorsAsWarnings?: boolean;
@@ -17,18 +10,16 @@ export type MonitorOptions = {
     };
     shouldMonitorExecutionStart?: boolean;
     mock?: boolean;
-};
+}
 
-export type Unpromisify<T> = T extends PromiseLike<infer U> ? U : T
+export type Unpromisify<T> = T extends PromiseLike<infer U> ? U : T;
 
-export type MonitoredOptions<T> = {
-  context?: any;
-  logResult?: boolean;
-  parseResult?: (r: Unpromisify<T>) => any;
-  level?: 'info' | 'debug';
-  logAsError?: boolean;
-  logErrorAsInfo?: boolean,
-  shouldMonitorError?: (e: any) => boolean;
-  shouldMonitorSuccess?: (r: Unpromisify<T>) => boolean;
-  tags?: StatsdTags;
-};
+export interface MonitoredOptions<T> extends MetricOptions {
+    logResult?: boolean;
+    parseResult?: (r: Unpromisify<T>) => any;
+    level?: 'info' | 'debug';
+    logAsError?: boolean;
+    logErrorAsInfo?: boolean;
+    shouldMonitorError?: (e: any) => boolean;
+    shouldMonitorSuccess?: (r: Unpromisify<T>) => boolean;
+}

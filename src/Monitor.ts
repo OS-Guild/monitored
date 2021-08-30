@@ -2,7 +2,7 @@ import {safe} from './utils';
 import {MonitorOptions, MonitoredOptions, Unpromisify} from './types';
 import {emptyLogger, consoleLogger} from './loggers';
 import {Logger} from './Logger';
-import {IMetricsProvider} from './metricsProviderClient/IMetricsProvider';
+import {PluginsWrapper} from './plugins/PluginsWrapper';
 
 interface Config {
     serviceName: string;
@@ -11,11 +11,13 @@ interface Config {
 }
 
 class Monitor {
-    private metricsProviderClient: IMetricsProvider | undefined;
+    private plugins: PluginsWrapper;
     private config: Config;
     private logger: Logger;
 
     constructor(options: MonitorOptions) {
+        this.plugins = new PluginsWrapper(options.plugins);
+
         this.config = {
             serviceName: options.serviceName ? `${options.serviceName}.` : '',
             shouldMonitorExecutionStart: options.shouldMonitorExecutionStart ?? true,
@@ -25,70 +27,49 @@ class Monitor {
         this.logger = new Logger(options.mock ? emptyLogger : options.logging?.logger ?? consoleLogger, {
             logErrorsAsWarnings: options.logging?.logErrorsAsWarnings,
         });
-
-        if (options.statsd) {
-            const {apiKey, root, port, ...restStatsdOptions} = options.statsd;
-            const prefixesArray = [apiKey, root, options.serviceName].filter(Boolean);
-            const prefix = `${prefixesArray.join('.')}.`;
-
-            // this.metricsProviderClient = new AsyncStatsD(this.logger, {
-            //     port: port ?? 8125,
-            //     prefix,
-            //     mock: options.mock,
-            //     ...restStatsdOptions,
-            // });
-        }
     }
 
-    monitored = <T>(name: string, callable: () => T, options: MonitoredOptions<T> = {}) => {
-        const {level = 'debug', context} = options;
+    monitored<T>(scope: string, callable: () => T, options: MonitoredOptions<T> = {}) {
         const startTime = Date.now();
 
         if (this.config.shouldMonitorExecutionStart) {
-            this.metricsProviderClient?.onStart(name); // TODO: Support tags
-            this.monitoredLogger(level, `${name}.start`, {extra: context});
+            this.plugins.onStart({scope, options});
         }
 
         try {
             const result = callable();
             if (result && result instanceof Promise) {
-                return <T>(
-                    (<any>(
-                        result
-                            .then((promiseResult: Unpromisify<T>) =>
-                                this.onResult(promiseResult, name, startTime, options)
-                            )
-                            .catch((err) => this.onErrorAsync(err, name, options))
-                    ))
-                );
+                return result
+                    .then((promiseResult: Unpromisify<T>) => this.onResult(promiseResult, scope, startTime, options))
+                    .catch((err) => this.onError(err, scope, startTime, options));
             }
-            return this.onResult(result as Unpromisify<T>, name, startTime, options);
+            return this.onResult(result as Unpromisify<T>, scope, startTime, options);
         } catch (err) {
-            return this.onErrorSync(err, name, options);
+            this.onError(err, scope, startTime, options);
         }
-    };
+    }
 
-    getMonitoringClient = () => this.metricsProviderClient;
-
+    // TODO: keep logger or remove it
     monitoredLogger = (level: MonitoredOptions<any>['level'], message, {extra}) => {
         const log = level === 'info' ? this.logger.info : this.logger.debug;
         log(message, {extra});
     };
 
-    private onResult = <T>(
+    private onResult<T>(
         result: Unpromisify<T>,
-        name: string,
+        scope: string,
         startTime: number,
-        {shouldMonitorSuccess, context, parseResult, logResult, level}: MonitoredOptions<T> // TODO: Support tags
-    ): Unpromisify<T> => {
+        options: MonitoredOptions<T>
+    ): Unpromisify<T> {
+        const {shouldMonitorSuccess, context, parseResult, logResult, level} = options;
         const executionTime = Date.now() - startTime;
 
         if (shouldMonitorSuccess?.(result) ?? true) {
-            this.metricsProviderClient?.onSuccess(name, executionTime);
+            this.plugins.onSuccess({scope, executionTime, options});
         }
 
         if (!this.config.disableSuccessLogs) {
-            this.monitoredLogger(level, `${name}.success`, {
+            this.monitoredLogger(level, `${scope}.success`, {
                 extra: {
                     ...context,
                     executionTime,
@@ -98,35 +79,17 @@ class Monitor {
         }
 
         return result;
-    };
+    }
 
-    private onErrorAsync = async (
-        err,
-        name: string,
-        {shouldMonitorError, context, logAsError, logErrorAsInfo}: MonitoredOptions<never> // TODO: Support tags
-    ) => {
-        if (shouldMonitorError?.(err) ?? true) {
-            // TODO: support exec time
-            this.metricsProviderClient?.onFailure(name, 0);
-            this.logger.error(`${name}.error`, err, context, logAsError, logErrorAsInfo);
+    private onError(err: any, scope: string, startTime: number, options: MonitoredOptions<never>): never {
+        const executionTime = Date.now() - startTime;
+
+        if (options?.shouldMonitorError?.(err) ?? true) {
+            this.plugins.onFailure({scope, executionTime, options, reason: err});
         }
 
         throw err;
-    };
-
-    private onErrorSync = (
-        err,
-        name: string,
-        {shouldMonitorError, context, logAsError, logErrorAsInfo}: MonitoredOptions<never> // TODO: Support tags
-    ) => {
-        if (shouldMonitorError?.(err) ?? true) {
-            // TODO: support exec time
-            this.metricsProviderClient?.onFailure(name, 0);
-            this.logger.error(`${name}.error`, err, context, logAsError, logErrorAsInfo);
-        }
-
-        throw err;
-    };
+    }
 }
 
 export default Monitor;
