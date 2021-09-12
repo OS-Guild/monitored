@@ -10,6 +10,7 @@ export function getGlobalInstance(): Monitor {
     if (!instance) {
         instance = new Monitor({
             serviceName: '',
+            plugins: [],
         });
     }
 
@@ -17,4 +18,3 @@ export function getGlobalInstance(): Monitor {
 }
 
 export const monitored: Monitor['monitored'] = (...args) => getGlobalInstance().monitored(...args);
-export const getStatsdClient: Monitor['getMonitoringClient'] = (...args) => getGlobalInstance().getMonitoringClient(...args);

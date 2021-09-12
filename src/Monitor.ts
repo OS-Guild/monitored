@@ -30,11 +30,11 @@ class Monitor {
     }
 
     monitored<T>(scope: string, callable: () => T, options: MonitoredOptions<T> = {}) {
-        const startTime = Date.now();
-
         if (this.config.shouldMonitorExecutionStart) {
             this.plugins.onStart({scope, options});
         }
+
+        const startTime = Date.now();
 
         try {
             const result = callable();
@@ -49,33 +49,17 @@ class Monitor {
         }
     }
 
-    // TODO: keep logger or remove it
-    monitoredLogger = (level: MonitoredOptions<any>['level'], message, {extra}) => {
-        const log = level === 'info' ? this.logger.info : this.logger.debug;
-        log(message, {extra});
-    };
-
     private onResult<T>(
         result: Unpromisify<T>,
         scope: string,
         startTime: number,
         options: MonitoredOptions<T>
     ): Unpromisify<T> {
-        const {shouldMonitorSuccess, context, parseResult, logResult, level} = options;
+        const {shouldMonitorSuccess} = options;
         const executionTime = Date.now() - startTime;
 
         if (shouldMonitorSuccess?.(result) ?? true) {
             this.plugins.onSuccess({scope, executionTime, options});
-        }
-
-        if (!this.config.disableSuccessLogs) {
-            this.monitoredLogger(level, `${scope}.success`, {
-                extra: {
-                    ...context,
-                    executionTime,
-                    executionResult: logResult ? safe(parseResult)(result) : 'NOT_LOGGED',
-                },
-            });
         }
 
         return result;

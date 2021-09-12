@@ -48,20 +48,18 @@ export class StatsdPlugin implements MonitoredPlugin {
         this.close = promisify(this.client.close.bind(this.client));
     }
 
-    async onStart({scope, options}: OnStartOptions) {
-        await this.increment(`${scope}.start`, 1, options?.tags);
+    onStart({scope, options}: OnStartOptions) {
+        this.increment(`${scope}.start`, 1, options?.tags);
     }
 
-    async onSuccess({scope, executionTime, options}: OnSuccessOptions) {
-        await Promise.all([
-            this.increment(`${scope}.success`, 1, options?.tags),
-            this.gauge(`${scope}.ExecutionTime`, executionTime, options?.tags),
-            this.timing(`${scope}.ExecutionTime`, executionTime, options?.tags),
-        ]);
+    onSuccess({scope, executionTime, options}: OnSuccessOptions) {
+        this.increment(`${scope}.success`, 1, options?.tags);
+        this.gauge(`${scope}.ExecutionTime`, executionTime, options?.tags);
+        this.timing(`${scope}.ExecutionTime`, executionTime, options?.tags);
     }
 
-    async onFailure({scope, options}: OnFailureOptions) {
-        await this.increment(`${scope}.error`, 1, options?.tags);
+    onFailure({scope, options}: OnFailureOptions) {
+        this.increment(`${scope}.error`, 1, options?.tags);
     }
 
     get statsd() {
@@ -72,7 +70,7 @@ export class StatsdPlugin implements MonitoredPlugin {
         try {
             await this.wrapStatsdPromise(this._increment(name, value, tags));
         } catch (err) {
-            this.logger.error(`Failed to send increment: ${name}`, err);
+            this.logger.error(`Failed to send increment: ${name}`, err as Error);
         }
     }
 
@@ -80,7 +78,7 @@ export class StatsdPlugin implements MonitoredPlugin {
         try {
             await this.wrapStatsdPromise(this._gauge(name, value, tags));
         } catch (err) {
-            this.logger.error(`Failed to send gauge: ${name}`, err);
+            this.logger.error(`Failed to send gauge: ${name}`, err as Error);
         }
     }
 
@@ -88,7 +86,7 @@ export class StatsdPlugin implements MonitoredPlugin {
         try {
             await this.wrapStatsdPromise(this._timing(name, value, tags));
         } catch (err) {
-            this.logger.error(`Failed to send timing: ${name}`, err);
+            this.logger.error(`Failed to send timing: ${name}`, err as Error);
         }
     }
 
@@ -106,7 +104,7 @@ export class StatsdPlugin implements MonitoredPlugin {
             );
             return true;
         } catch (err) {
-            this.logger.error('flush timeout', err);
+            this.logger.error('flush timeout', err as Error);
             return false;
         }
     }

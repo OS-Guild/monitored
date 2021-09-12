@@ -11,12 +11,12 @@ export class PrometheusPlugin implements MonitoredPlugin {
 
     constructor(private readonly opts: PrometheusPluginOptions) {}
 
-    async onStart({scope, options}: OnStartOptions): Promise<void> {
+    onStart({scope, options}: OnStartOptions): void {
         const {counter} = this.getMetrics(scope, options);
         counter.inc({result: 'start', ...options?.tags});
     }
 
-    async onSuccess({scope, options, executionTime}: OnSuccessOptions): Promise<void> {
+    onSuccess({scope, options, executionTime}: OnSuccessOptions): void {
         const {counter, histogram} = this.getMetrics(scope, options);
         const labels = {result: 'success', ...options?.tags};
 
@@ -24,7 +24,7 @@ export class PrometheusPlugin implements MonitoredPlugin {
         histogram.observe(labels, executionTime);
     }
 
-    async onFailure({scope, options, executionTime}: OnFailureOptions): Promise<void> {
+    onFailure({scope, options, executionTime}: OnFailureOptions): void {
         const {counter, histogram} = this.getMetrics(scope, options);
         const labels = {result: 'failure', ...options?.tags};
 

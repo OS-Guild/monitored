@@ -15,11 +15,6 @@ export interface MonitorOptions {
 export type Unpromisify<T> = T extends PromiseLike<infer U> ? U : T;
 
 export interface MonitoredOptions<T> extends MetricOptions {
-    logResult?: boolean;
-    parseResult?: (r: Unpromisify<T>) => any;
-    level?: 'info' | 'debug';
-    logAsError?: boolean;
-    logErrorAsInfo?: boolean;
     shouldMonitorError?: (e: any) => boolean;
     shouldMonitorSuccess?: (r: Unpromisify<T>) => boolean;
 }

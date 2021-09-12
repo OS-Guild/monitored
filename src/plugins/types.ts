@@ -1,15 +1,7 @@
 export interface MetricOptions {
     context?: Record<string, any>;
-    tags?: Record<string, string | number>;
+    tags?: Record<string, string>;
 }
-
-// export interface MetricOptions {
-//     logging?: {
-//         level?: 'info' | 'debug';
-//         logAsError?: boolean;
-//         logErrorAsInfo?: boolean;
-//     };
-// }
 
 export interface OnStartOptions {
     scope: string;
@@ -30,7 +22,7 @@ export interface OnFailureOptions {
 }
 
 export interface MonitoredPlugin {
-    onStart(opts: OnStartOptions): Promise<void>;
-    onSuccess(opts: OnSuccessOptions): Promise<void>;
-    onFailure(opts: OnFailureOptions): Promise<void>;
+    onStart(opts: OnStartOptions): void;
+    onSuccess(opts: OnSuccessOptions): void;
+    onFailure(opts: OnFailureOptions): void;
 }

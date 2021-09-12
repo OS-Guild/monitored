@@ -3,15 +3,15 @@ import {MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} fro
 export class PluginsWrapper implements MonitoredPlugin {
     constructor(private readonly providers: MonitoredPlugin[]) {}
 
-    async onStart(opts: OnStartOptions): Promise<void> {
-        await Promise.all(this.providers.map((p) => p.onStart(opts)));
+    onStart(opts: OnStartOptions): void {
+        this.providers.forEach((p) => p.onStart(opts));
     }
 
-    async onSuccess(opts: OnSuccessOptions): Promise<void> {
-        await Promise.all(this.providers.map((p) => p.onSuccess(opts)));
+    onSuccess(opts: OnSuccessOptions): void {
+        this.providers.forEach((p) => p.onSuccess(opts));
     }
 
-    async onFailure(opts: OnFailureOptions): Promise<void> {
-        await Promise.all(this.providers.map((p) => p.onFailure(opts)));
+    onFailure(opts: OnFailureOptions): void {
+        this.providers.forEach((p) => p.onFailure(opts));
     }
 }
