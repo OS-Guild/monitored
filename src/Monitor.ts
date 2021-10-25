@@ -1,7 +1,4 @@
-import {safe} from './utils';
-import {MonitorOptions, MonitoredOptions, Unpromisify} from './types';
-import {emptyLogger, consoleLogger} from './loggers';
-import {Logger} from './Logger';
+import {MonitoredOptions, MonitorOptions, Unpromisify} from './types';
 import {PluginsWrapper} from './plugins/PluginsWrapper';
 
 interface Config {
@@ -13,7 +10,6 @@ interface Config {
 class Monitor {
     private plugins: PluginsWrapper;
     private config: Config;
-    private logger: Logger;
 
     constructor(options: MonitorOptions) {
         this.plugins = new PluginsWrapper(options.plugins);
@@ -23,10 +19,6 @@ class Monitor {
             shouldMonitorExecutionStart: options.shouldMonitorExecutionStart ?? true,
             disableSuccessLogs: options.logging?.disableSuccessLogs ?? false,
         };
-
-        this.logger = new Logger(options.mock ? emptyLogger : options.logging?.logger ?? consoleLogger, {
-            logErrorsAsWarnings: options.logging?.logErrorsAsWarnings,
-        });
     }
 
     monitored<T>(scope: string, callable: () => T, options: MonitoredOptions<T> = {}) {

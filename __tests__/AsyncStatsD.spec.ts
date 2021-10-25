@@ -1,24 +1,24 @@
-import {MonitorOptions} from '../src';
-import {AsyncStatsD} from '../src/AsyncStatsD';
 import {mocked} from 'ts-jest/utils';
 import {StatsCb, Tags} from 'hot-shots';
-import { Logger } from '../src/Logger';
+import {Logger} from '../src/Logger';
 import {consoleLogger} from '../src/loggers';
+import {StatsdPlugin, StatsdPluginOptions} from '../src/plugins/StatsdPlugin';
 
 jest.mock('hot-shots');
 
-const statsdOptions: MonitorOptions['statsd'] = {
+const statsdOptions: StatsdPluginOptions = {
+    serviceName: 'test',
     apiKey: 'key',
     host: 'host',
     root: 'root',
 };
 
-let client: AsyncStatsD;
+let client: StatsdPlugin;
 
 describe('AsyncStatsD', () => {
     beforeEach(() => {
         jest.resetAllMocks();
-        client = new AsyncStatsD(new Logger(consoleLogger), statsdOptions);
+        client = new StatsdPlugin(new Logger(consoleLogger), statsdOptions);
     });
 
     describe('increment', () => {
@@ -126,7 +126,10 @@ interface MockStatsdCallbackOptions {
     error?: any;
 }
 
-function mockStatsdCallback(func: (_a: string, _b: number, _t: Tags, cb: StatsCb) => void, opts: MockStatsdCallbackOptions = {}) {
+function mockStatsdCallback(
+    func: (_a: string, _b: number, _t: Tags, cb: StatsCb) => void,
+    opts: MockStatsdCallbackOptions = {}
+) {
     const {delay = 50, error = undefined} = opts;
 
     mocked(func).mockImplementation((_a, _b, _t, cb) => {
