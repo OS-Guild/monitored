@@ -1,6 +1,4 @@
-import {mocked} from 'ts-jest/utils';
 import Monitor from '../src/Monitor';
-import {consoleLogger} from '../src/loggers';
 import {MonitorOptions} from '../src';
 import {
     assertGaugeWasCalled,
@@ -8,8 +6,6 @@ import {
     assertIncrementWasNotCalled,
     assertTimingWasCalled,
 } from './utils';
-// import {StatsdPluginOptions} from '../src/plugins/StatsdPlugin';
-// import {Logger} from '../src/Logger';
 import {StatsdPlugin} from './__mocks__/plugins/StatsdPlugin';
 
 jest.mock('../src/plugins/StatsdPlugin', () => StatsdPlugin);
@@ -105,7 +101,7 @@ describe('Monitor', () => {
         });
 
         describe('shouldMonitorExecutionStart', () => {
-            test('true', async () => {
+            test('true', () => {
                 const mockReturn = 10;
                 const mockFunc = jest.fn().mockReturnValue(mockReturn);
                 const monitor = new Monitor({...defaultMonitorOptions, shouldMonitorExecutionStart: true});
@@ -115,10 +111,9 @@ describe('Monitor', () => {
                 expect(mockFunc).toBeCalledTimes(1);
                 expect(res).toEqual(mockReturn);
                 assertIncrementWasCalled(plugin, 'test.start');
-                expect(mocked(consoleLogger.debug)).toHaveBeenCalledWith('test.start', {extra: undefined});
             });
 
-            test('false', async () => {
+            test('false', () => {
                 const mockReturn = 10;
                 const mockFunc = jest.fn().mockReturnValue(mockReturn);
                 const monitor = new Monitor({...defaultMonitorOptions, shouldMonitorExecutionStart: false});
@@ -128,10 +123,10 @@ describe('Monitor', () => {
                 expect(mockFunc).toBeCalledTimes(1);
                 expect(res).toEqual(mockReturn);
                 assertIncrementWasNotCalled(plugin, 'test.start');
-                expect(mocked(consoleLogger.debug)).not.toHaveBeenCalledWith('test.start', expect.anything());
             });
         });
 
+        // TODO: Add assertions to check instance of promise (when async)
         describe('result', () => {
             const mockReturn = 10;
 
@@ -156,71 +151,6 @@ describe('Monitor', () => {
                         assertIncrementWasCalled(plugin, 'test.success');
                         assertGaugeWasCalled(plugin, 'test.ExecutionTime');
                         assertTimingWasCalled(plugin, 'test.ExecutionTime');
-
-                        expect(mocked(consoleLogger.debug)).toHaveBeenCalledWith('test.success', {
-                            extra: {
-                                executionTime: expect.any(Number),
-                                executionResult: 'NOT_LOGGED',
-                            },
-                        });
-                    });
-
-                    test('send context', async () => {
-                        const context = {a: 'a', b: 'bbbbb', c: true};
-                        const monitor = new Monitor({...defaultMonitorOptions});
-
-                        const res = monitor.monitored('test', mockFunc, {context});
-
-                        if (isAsync) {
-                            await res;
-                        }
-
-                        expect(mocked(consoleLogger.debug)).toHaveBeenCalledWith('test.success', {
-                            extra: {
-                                ...context,
-                                executionTime: expect.any(Number),
-                                executionResult: 'NOT_LOGGED',
-                            },
-                        });
-                    });
-
-                    test('logResult: true', async () => {
-                        const monitor = new Monitor({...defaultMonitorOptions, shouldMonitorExecutionStart: false});
-
-                        const res = monitor.monitored('test', mockFunc);
-
-                        if (isAsync) {
-                            await res;
-                        }
-
-                        expect(mocked(consoleLogger.debug)).toHaveBeenCalledWith('test.success', {
-                            extra: {
-                                executionTime: expect.any(Number),
-                                executionResult: mockReturn,
-                            },
-                        });
-                    });
-
-                    // TODO: Parsing is probably dependent on the logger plugin used.
-                    test.skip('logResult: true with parseResult', async () => {
-                        const monitor = new Monitor({...defaultMonitorOptions});
-                        const mockParsedReturn = 50;
-                        // const parseResult = jest.fn().mockReturnValue(mockParsedReturn);
-
-                        let res = monitor.monitored('test', mockFunc);
-
-                        if (isAsync) {
-                            res = await res;
-                        }
-
-                        expect(res).toEqual(mockReturn);
-
-                        expect(mocked(consoleLogger.debug)).toHaveBeenCalledWith('test.success', {
-                            extra: {
-                                executionTime: expect.any(Number),
-                                executionResult: mockParsedReturn,
-                            },
-                        });
                     });
                 });
             });
@@ -255,11 +185,6 @@ describe('Monitor', () => {
                             expect(err).toEqual(mockError);
 
                             assertIncrementWasCalled(plugin, 'test.error');
-
-                            expect(mocked(consoleLogger.error)).toHaveBeenCalledWith('test.error', {
-                                err: mockError,
-                                extra: undefined,
-                            });
                         }
                     });
 
@@ -277,11 +202,6 @@ describe('Monitor', () => {
                             fail('Should not success');
                         } catch (err) {
                             expect(err).toEqual(mockError);
-
-                            expect(mocked(consoleLogger.error)).toHaveBeenCalledWith('test.error', {
-                                err: mockError,
-                                extra: context,
-                            });
                         }
                     });
                 });

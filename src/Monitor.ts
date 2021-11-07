@@ -1,5 +1,7 @@
 import {MonitoredOptions, MonitorOptions, Unpromisify} from './types';
 import {PluginsWrapper} from './plugins/PluginsWrapper';
+import {Logger} from './Logger';
+import {consoleLogger} from './loggers';
 
 interface Config {
     serviceName: string;
@@ -10,6 +12,7 @@ interface Config {
 class Monitor {
     private plugins: PluginsWrapper;
     private config: Config;
+    private readonly logger: Logger;
 
     constructor(options: MonitorOptions) {
         this.plugins = new PluginsWrapper(options.plugins);
@@ -19,11 +22,12 @@ class Monitor {
             shouldMonitorExecutionStart: options.shouldMonitorExecutionStart ?? true,
             disableSuccessLogs: options.logging?.disableSuccessLogs ?? false,
         };
+        this.logger = options.logging?.logger ?? new Logger(consoleLogger);
     }
 
     monitored<T>(scope: string, callable: () => T, options: MonitoredOptions<T> = {}) {
         if (this.config.shouldMonitorExecutionStart) {
-            this.plugins.onStart({scope, options});
+            this.plugins.onStart({scope, options, logger: this.logger});
         }
 
         const startTime = Date.now();
@@ -51,7 +55,7 @@ class Monitor {
         const executionTime = Date.now() - startTime;
 
         if (shouldMonitorSuccess?.(result) ?? true) {
-            this.plugins.onSuccess({scope, executionTime, options});
+            this.plugins.onSuccess({scope, executionTime, options, logger: this.logger});
         }
 
         return result;
@@ -61,7 +65,7 @@ class Monitor {
         const executionTime = Date.now() - startTime;
 
         if (options?.shouldMonitorError?.(err) ?? true) {
-            this.plugins.onFailure({scope, executionTime, options, reason: err});
+            this.plugins.onFailure({scope, executionTime, options, reason: err, logger: this.logger});
         }
 
         throw err;

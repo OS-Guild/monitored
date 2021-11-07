@@ -1,9 +1,9 @@
-export class StatsdPlugin {
-    constructor() {}
+const actualPlugin = jest.requireActual('../../../src/plugins/StatsdPlugin').StatsdPlugin.prototype;
 
-    onStart = jest.fn();
-    onSuccess = jest.fn();
-    onFailure = jest.fn();
+export class StatsdPlugin {
+    onStart = actualPlugin.onStart;
+    onSuccess = actualPlugin.onSuccess;
+    onFailure = actualPlugin.onFailure;
     increment = jest.fn();
     gauge = jest.fn();
     timing = jest.fn();

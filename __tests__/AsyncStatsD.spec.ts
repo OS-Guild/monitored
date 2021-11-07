@@ -15,11 +15,13 @@ const statsdOptions: StatsdPluginOptions = {
 
 let client: StatsdPlugin;
 
-describe('AsyncStatsD', () => {
+describe('StatsdPlugin', () => {
     beforeEach(() => {
         jest.resetAllMocks();
         client = new StatsdPlugin(new Logger(consoleLogger), statsdOptions);
     });
+
+    // TODO: add cases for Plugin interface.
 
     describe('increment', () => {
         test('success', async () => {
