@@ -144,6 +144,8 @@ describe('Monitor', () => {
 
                         const res = monitor.monitored('test', mockFunc);
 
+                        isAsync ? expect(res).toBeInstanceOf(Promise) : expect(res).toBe(10);
+
                         if (isAsync) {
                             await res;
                         }

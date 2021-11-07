@@ -1,4 +1,4 @@
-import {StatsD, ClientOptions, Tags} from 'hot-shots';
+import {ClientOptions, StatsD, Tags} from 'hot-shots';
 import {promisify} from 'util';
 import {timeoutPromise} from '../utils';
 import {Logger} from '../Logger';
@@ -15,17 +15,16 @@ export interface StatsdPluginOptions extends Omit<ClientOptions, 'prefix'> {
 }
 
 export class StatsdPlugin implements MonitoredPlugin {
-    private client: StatsD;
-    private logger: Logger;
+    private readonly client: StatsD;
     private promiseCount: number;
-    private pendingPromises: Record<number, Promise<any>>;
+    private readonly pendingPromises: Record<number, Promise<any>>;
 
-    private _increment: (name: string, value: number, tags?: Tags) => Promise<void>;
-    private _gauge: (name: string, value: number, tags?: Tags) => Promise<void>;
-    private _timing: (name: string, value: number, tags?: Tags) => Promise<void>;
+    private readonly _increment: (name: string, value: number, tags?: Tags) => Promise<void>;
+    private readonly _gauge: (name: string, value: number, tags?: Tags) => Promise<void>;
+    private readonly _timing: (name: string, value: number, tags?: Tags) => Promise<void>;
     close: () => Promise<void>;
 
-    constructor(logger: Logger, rawOptions: StatsdPluginOptions) {
+    constructor(rawOptions: StatsdPluginOptions) {
         const {apiKey, root, port, ...rest} = rawOptions;
         const prefixesArray = [apiKey, root, rawOptions.serviceName].filter(Boolean);
         const prefix = `${prefixesArray.join('.')}.`;
@@ -38,7 +37,6 @@ export class StatsdPlugin implements MonitoredPlugin {
 
         this.client = new StatsD({cacheDns: true, ...options});
 
-        this.logger = logger;
         this.promiseCount = 0;
         this.pendingPromises = {};
 
@@ -48,49 +46,49 @@ export class StatsdPlugin implements MonitoredPlugin {
         this.close = promisify(this.client.close.bind(this.client));
     }
 
-    onStart({scope, options}: OnStartOptions) {
-        this.increment(`${scope}.start`, 1, options?.tags);
+    onStart({scope, options, logger}: OnStartOptions) {
+        this.increment(`${scope}.start`, 1, options?.tags, logger);
     }
 
-    onSuccess({scope, executionTime, options}: OnSuccessOptions) {
-        this.increment(`${scope}.success`, 1, options?.tags);
-        this.gauge(`${scope}.ExecutionTime`, executionTime, options?.tags);
-        this.timing(`${scope}.ExecutionTime`, executionTime, options?.tags);
+    onSuccess({scope, executionTime, options, logger}: OnSuccessOptions) {
+        this.increment(`${scope}.success`, 1, options?.tags, logger);
+        this.gauge(`${scope}.ExecutionTime`, executionTime, options?.tags, logger);
+        this.timing(`${scope}.ExecutionTime`, executionTime, options?.tags, logger);
     }
 
-    onFailure({scope, options}: OnFailureOptions) {
-        this.increment(`${scope}.error`, 1, options?.tags);
+    onFailure({scope, options, logger}: OnFailureOptions) {
+        this.increment(`${scope}.error`, 1, options?.tags, logger);
     }
 
     get statsd() {
         return this.client;
     }
 
-    async increment(name: string, value: number = 1, tags?: Tags) {
+    async increment(name: string, value: number = 1, tags?: Tags, logger?: Logger) {
         try {
             await this.wrapStatsdPromise(this._increment(name, value, tags));
         } catch (err) {
-            this.logger.error(`Failed to send increment: ${name}`, err as Error);
+            logger?.error(`Failed to send increment: ${name}`, err as Error);
         }
     }
 
-    async gauge(name: string, value: number, tags?: Tags) {
+    async gauge(name: string, value: number, tags?: Tags, logger?: Logger) {
         try {
             await this.wrapStatsdPromise(this._gauge(name, value, tags));
         } catch (err) {
-            this.logger.error(`Failed to send gauge: ${name}`, err as Error);
+            logger?.error(`Failed to send gauge: ${name}`, err as Error);
         }
     }
 
-    async timing(name: string, value: number, tags?: Tags) {
+    async timing(name: string, value: number, tags?: Tags, logger?: Logger) {
         try {
             await this.wrapStatsdPromise(this._timing(name, value, tags));
         } catch (err) {
-            this.logger.error(`Failed to send timing: ${name}`, err as Error);
+            logger?.error(`Failed to send timing: ${name}`, err as Error);
         }
     }
 
-    async flush(timeout: number = 2000) {
+    async flush(timeout: number = 2000, logger?: Logger) {
         const remainingPromises = Object.values(this.pendingPromises).map((p) => p.catch(noop));
         if (!remainingPromises.length) {
             return true;
@@ -104,7 +102,7 @@ export class StatsdPlugin implements MonitoredPlugin {
             );
             return true;
         } catch (err) {
-            this.logger.error('flush timeout', err as Error);
+            logger?.error('flush timeout', err as Error);
             return false;
         }
     }

@@ -1,8 +1,10 @@
 import {mocked} from 'ts-jest/utils';
 import {StatsCb, Tags} from 'hot-shots';
-import {Logger} from '../src/Logger';
-import {consoleLogger} from '../src/loggers';
 import {StatsdPlugin, StatsdPluginOptions} from '../src/plugins/StatsdPlugin';
+import * as MockStatsDPlugin from './__mocks__/plugins/StatsdPlugin';
+import {MonitorOptions} from '../src';
+import Monitor from '../src/Monitor';
+import {assertGaugeWasCalled, assertIncrementWasCalled, assertTimingWasCalled} from './utils';
 
 jest.mock('hot-shots');
 
@@ -15,13 +17,46 @@ const statsdOptions: StatsdPluginOptions = {
 
 let client: StatsdPlugin;
 
+const plugin = new MockStatsDPlugin.StatsdPlugin();
+const defaultMonitorOptions: MonitorOptions = {
+    serviceName: 'test-service',
+    plugins: [plugin],
+};
+const monitor = new Monitor({...defaultMonitorOptions});
+
 describe('StatsdPlugin', () => {
     beforeEach(() => {
         jest.resetAllMocks();
-        client = new StatsdPlugin(new Logger(consoleLogger), statsdOptions);
+        client = new StatsdPlugin(statsdOptions);
     });
 
-    // TODO: add cases for Plugin interface.
+    describe('plugin', () => {
+        test('onSuccess', () => {
+            monitor.monitored('abc', () => 123);
+
+            assertIncrementWasCalled(plugin, 'abc.start');
+            assertGaugeWasCalled(plugin, 'abc.ExecutionTime');
+            assertTimingWasCalled(plugin, 'abc.ExecutionTime');
+        });
+
+        test('onStart', () => {
+            monitor.monitored('abc', () => 123);
+
+            assertIncrementWasCalled(plugin, 'abc.start');
+            assertIncrementWasCalled(plugin, 'abc.success');
+        });
+
+        test('onFailure', () => {
+            try {
+                monitor.monitored('abc', () => {
+                    throw new Error('123');
+                });
+            } catch (err) {}
+
+            assertIncrementWasCalled(plugin, 'abc.start');
+            assertIncrementWasCalled(plugin, 'abc.error');
+        });
+    });
 
     describe('increment', () => {
         test('success', async () => {

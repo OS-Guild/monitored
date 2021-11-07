@@ -6,7 +6,6 @@ import {consoleLogger} from './loggers';
 interface Config {
     serviceName: string;
     shouldMonitorExecutionStart: boolean;
-    disableSuccessLogs: boolean;
 }
 
 class Monitor {
@@ -20,7 +19,6 @@ class Monitor {
         this.config = {
             serviceName: options.serviceName ? `${options.serviceName}.` : '',
             shouldMonitorExecutionStart: options.shouldMonitorExecutionStart ?? true,
-            disableSuccessLogs: options.logging?.disableSuccessLogs ?? false,
         };
         this.logger = options.logging?.logger ?? new Logger(consoleLogger);
     }
