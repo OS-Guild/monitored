@@ -24,12 +24,6 @@ jest.mock('../src/loggers', () => ({
     },
 }));
 
-// const statsdOptions: MonitorOptions['statsd'] = {
-//     apiKey: 'key',
-//     host: 'host',
-//     root: 'root',
-// };
-
 const plugin = new StatsdPlugin();
 const defaultMonitorOptions: MonitorOptions = {
     serviceName: 'test-service',
@@ -126,17 +120,11 @@ describe('Monitor', () => {
             });
         });
 
-        // TODO: Add assertions to check instance of promise (when async)
         describe('result', () => {
             const mockReturn = 10;
 
             [false, true].forEach((isAsync) => {
-                const mockFunc: any = isAsync
-                    ? () =>
-                          new Promise<number>((resolve) => {
-                              resolve(mockReturn);
-                          })
-                    : () => mockReturn;
+                const mockFunc: any = isAsync ? () => Promise.resolve(mockReturn) : () => mockReturn;
 
                 describe(`${isAsync ? 'async' : 'sync'} function`, () => {
                     test('default options', async () => {
@@ -163,10 +151,7 @@ describe('Monitor', () => {
 
             [false, true].forEach((isAsync) => {
                 const mockFunc: any = isAsync
-                    ? () =>
-                          new Promise<number>((_, reject) => {
-                              reject(mockError);
-                          })
+                    ? () => Promise.reject(mockError)
                     : () => {
                           throw mockError;
                       };

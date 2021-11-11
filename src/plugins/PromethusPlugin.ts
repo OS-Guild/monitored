@@ -1,17 +1,26 @@
 import {Counter, Histogram, register as registry} from 'prom-client';
-import {MetricOptions, MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
+import {
+    InitializationOptions,
+    MetricOptions,
+    MonitoredPlugin,
+    OnFailureOptions,
+    OnStartOptions,
+    OnSuccessOptions,
+} from './types';
 
 export interface PrometheusPluginOptions {
     defaultBuckets?: number[];
 }
 
-const DEFAULT_BUCKETS: number[] = [10, 20, 50, 100, 150, 200]; // TODO: Replace this with actual buckets
+const DEFAULT_BUCKETS: number[] = [10, 20, 50, 100, 150, 200, 300, 500, 1000];
 
 export class PrometheusPlugin implements MonitoredPlugin {
     private readonly histograms: Record<string, Histogram<string>> = {};
     private readonly counters: Record<string, Counter<string>> = {};
 
     constructor(private readonly opts: PrometheusPluginOptions) {}
+
+    onInitialization(_: InitializationOptions): void {}
 
     onStart({scope, options}: OnStartOptions): void {
         const {counter} = this.getMetrics(scope, options);

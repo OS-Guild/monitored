@@ -5,24 +5,29 @@ export interface MetricOptions {
     tags?: Record<string, string>;
 }
 
-export interface CoreOptions {
-    logger: Logger;
+export interface EventOptions {
     scope: string;
     options?: MetricOptions;
 }
 
-export interface OnStartOptions extends CoreOptions {}
+export interface InitializationOptions {
+    logger: Logger;
+}
 
-export interface OnSuccessOptions extends CoreOptions {
+export interface OnStartOptions extends EventOptions {}
+
+export interface OnSuccessOptions extends EventOptions {
     executionTime: number;
 }
 
-export interface OnFailureOptions extends CoreOptions {
+export interface OnFailureOptions extends EventOptions {
     executionTime: number;
     reason: any;
 }
 
 export interface MonitoredPlugin {
+    onInitialization(opts: InitializationOptions): void;
+
     onStart(opts: OnStartOptions): void;
 
     onSuccess(opts: OnSuccessOptions): void;

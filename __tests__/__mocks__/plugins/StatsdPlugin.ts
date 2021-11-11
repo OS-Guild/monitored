@@ -1,6 +1,7 @@
 const actualPlugin = jest.requireActual('../../../src/plugins/StatsdPlugin').StatsdPlugin.prototype;
 
 export class StatsdPlugin {
+    onInitialization = actualPlugin.onInitialization;
     onStart = actualPlugin.onStart;
     onSuccess = actualPlugin.onSuccess;
     onFailure = actualPlugin.onFailure;

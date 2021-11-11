@@ -47,11 +47,11 @@ describe('StatsdPlugin', () => {
         });
 
         test('onFailure', () => {
-            try {
+            expect(() =>
                 monitor.monitored('abc', () => {
                     throw new Error('123');
-                });
-            } catch (err) {}
+                })
+            ).toThrow();
 
             assertIncrementWasCalled(plugin, 'abc.start');
             assertIncrementWasCalled(plugin, 'abc.error');
