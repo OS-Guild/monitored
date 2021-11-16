@@ -1,61 +1,66 @@
-import {mocked} from 'ts-jest/utils';
 import {StatsCb, Tags} from 'hot-shots';
-import {StatsdPlugin, StatsdPluginOptions} from '../src/plugins/StatsdPlugin';
-import * as MockStatsDPlugin from './__mocks__/plugins/StatsdPlugin';
-import {MonitorOptions} from '../src';
+import {mocked} from 'ts-jest/utils';
 import Monitor from '../src/Monitor';
+import {StatsdPlugin, StatsdPluginOptions} from '../src/plugins/StatsdPlugin';
 import {assertGaugeWasCalled, assertIncrementWasCalled, assertTimingWasCalled} from './utils';
+import {StatsdPlugin as MockStatsDPlugin} from './__mocks__/plugins/StatsdPlugin';
 
 jest.mock('hot-shots');
 
-const statsdOptions: StatsdPluginOptions = {
-    serviceName: 'test',
-    apiKey: 'key',
-    host: 'host',
-    root: 'root',
-};
-
-let client: StatsdPlugin;
-
-const plugin = new MockStatsDPlugin.StatsdPlugin();
-const defaultMonitorOptions: MonitorOptions = {
-    serviceName: 'test-service',
-    plugins: [plugin],
-};
-const monitor = new Monitor({...defaultMonitorOptions});
+beforeEach(() => {
+    jest.resetAllMocks();
+});
 
 describe('StatsdPlugin', () => {
+    let monitor: Monitor;
+    let plugin: MockStatsDPlugin;
+
     beforeEach(() => {
-        jest.resetAllMocks();
-        client = new StatsdPlugin(statsdOptions);
+        plugin = new MockStatsDPlugin();
+        monitor = new Monitor({
+            serviceName: 'test-service',
+            plugins: [plugin],
+        });
     });
 
-    describe('plugin', () => {
-        test('onSuccess', () => {
-            monitor.monitored('abc', () => 123);
+    test('onSuccess', () => {
+        monitor.monitored('abc', () => 123);
 
-            assertIncrementWasCalled(plugin, 'abc.start');
-            assertGaugeWasCalled(plugin, 'abc.ExecutionTime');
-            assertTimingWasCalled(plugin, 'abc.ExecutionTime');
-        });
+        assertIncrementWasCalled(plugin, 'abc.start');
+        assertGaugeWasCalled(plugin, 'abc.ExecutionTime');
+        assertTimingWasCalled(plugin, 'abc.ExecutionTime');
+    });
 
-        test('onStart', () => {
-            monitor.monitored('abc', () => 123);
+    test('onStart', () => {
+        monitor.monitored('abc', () => 123);
 
-            assertIncrementWasCalled(plugin, 'abc.start');
-            assertIncrementWasCalled(plugin, 'abc.success');
-        });
+        assertIncrementWasCalled(plugin, 'abc.start');
+        assertIncrementWasCalled(plugin, 'abc.success');
+    });
 
-        test('onFailure', () => {
-            expect(() =>
-                monitor.monitored('abc', () => {
-                    throw new Error('123');
-                })
-            ).toThrow();
+    test('onFailure', () => {
+        expect(() =>
+            monitor.monitored('abc', () => {
+                throw new Error('123');
+            })
+        ).toThrow();
 
-            assertIncrementWasCalled(plugin, 'abc.start');
-            assertIncrementWasCalled(plugin, 'abc.error');
-        });
+        assertIncrementWasCalled(plugin, 'abc.start');
+        assertIncrementWasCalled(plugin, 'abc.error');
+    });
+});
+
+describe('StatsdPlugin - StatsdClient invocation', () => {
+    let client: StatsdPlugin;
+
+    beforeEach(() => {
+        const statsdOptions: StatsdPluginOptions = {
+            serviceName: 'test',
+            apiKey: 'key',
+            host: 'host',
+            root: 'root',
+        };
+        client = new StatsdPlugin(statsdOptions);
     });
 
     describe('increment', () => {
