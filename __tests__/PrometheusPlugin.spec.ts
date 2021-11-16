@@ -1,7 +1,6 @@
-import {MonitorOptions} from '../src';
-import Monitor from '../src/Monitor';
-import {PrometheusPlugin} from '../src/plugins/PrometheusPlugin';
 import {Counter, Histogram, register} from 'prom-client';
+import Monitor from '../src/Monitor';
+import {PrometheusPlugin, DEFAULT_BUCKETS} from '../src/plugins/PrometheusPlugin';
 
 const histogram = {
     observe: jest.fn(),
@@ -19,15 +18,20 @@ jest.mock('prom-client', () => ({
         return counter;
     }),
     // TODO: Find a better way to mock this
-    register: {},
+    register: {
+        metrics: jest.fn(),
+    },
 }));
 
-const plugin = new PrometheusPlugin({});
-const defaultMonitorOptions: MonitorOptions = {
+const plugin = new PrometheusPlugin();
+const monitor = new Monitor({
     serviceName: 'test-service',
     plugins: [plugin],
-};
-const monitor = new Monitor({...defaultMonitorOptions});
+});
+
+beforeEach(() => {
+    jest.clearAllMocks();
+});
 
 describe('PrometheusPlugin', () => {
     it('onSuccess', () => {
@@ -42,7 +46,7 @@ describe('PrometheusPlugin', () => {
         expect(Histogram).toHaveBeenCalledWith({
             name: `abc_execution_time`,
             help: `abc_execution_time`,
-            buckets: expect.any(Array),
+            buckets: DEFAULT_BUCKETS,
             labelNames: ['result'],
         });
 
@@ -63,29 +67,29 @@ describe('PrometheusPlugin', () => {
     });
 
     it('should call registry', () => {
-        register.metrics = jest.fn();
-
         plugin.metrics();
 
         expect(register.metrics).toBeCalledTimes(1);
     });
 
     it('should create different counters and histograms per scope', () => {
-        monitor.monitored('abc', () => 123);
+        // TODO: check why the test fails if we replace 'abcd' with 'abc'
+        monitor.monitored('abcd', () => 123);
         monitor.monitored('123', () => 'abc');
 
         expect(Counter).toHaveBeenCalledTimes(2);
         expect(Histogram).toHaveBeenCalledTimes(2);
 
         expect(Counter).toHaveBeenCalledWith({
-            name: `abc_count`,
-            help: `abc_count`,
+            name: `abcd_count`,
+            help: `abcd_count`,
             labelNames: ['result'],
         });
+
         expect(Histogram).toHaveBeenCalledWith({
-            name: `abc_execution_time`,
-            help: `abc_execution_time`,
-            buckets: expect.any(Array),
+            name: `abcd_execution_time`,
+            help: `abcd_execution_time`,
+            buckets: DEFAULT_BUCKETS,
             labelNames: ['result'],
         });
 
@@ -94,10 +98,11 @@ describe('PrometheusPlugin', () => {
             help: `123_count`,
             labelNames: ['result'],
         });
+
         expect(Histogram).toHaveBeenCalledWith({
             name: `123_execution_time`,
             help: `123_execution_time`,
-            buckets: expect.any(Array),
+            buckets: DEFAULT_BUCKETS,
             labelNames: ['result'],
         });
     });

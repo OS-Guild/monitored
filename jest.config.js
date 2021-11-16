@@ -1,3 +1,4 @@
+/** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
     rootDir: '.',
     moduleFileExtensions: ['ts', 'tsx', 'js'],
@@ -10,4 +11,5 @@ module.exports = {
         },
     },
     testMatch: ['**/__tests__/**/*.spec.+(ts|tsx|js)'],
+    collectCoverage: true,
 };

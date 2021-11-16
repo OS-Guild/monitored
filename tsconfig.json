@@ -10,7 +10,7 @@
         "allowSyntheticDefaultImports": true,
         "strict": true,
         "suppressImplicitAnyIndexErrors": true,
-        "sourceMap": false,
+        "sourceMap": true,
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,

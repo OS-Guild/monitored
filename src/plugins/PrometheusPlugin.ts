@@ -12,13 +12,13 @@ export interface PrometheusPluginOptions {
     defaultBuckets?: number[];
 }
 
-const DEFAULT_BUCKETS: number[] = [10, 20, 50, 100, 150, 200, 300, 500, 1000];
+export const DEFAULT_BUCKETS: readonly number[] = Object.freeze([10, 20, 50, 100, 150, 200, 300, 500, 1000]);
 
 export class PrometheusPlugin implements MonitoredPlugin {
     private readonly histograms: Record<string, Histogram<string>> = {};
     private readonly counters: Record<string, Counter<string>> = {};
 
-    constructor(private readonly opts: PrometheusPluginOptions) {}
+    constructor(private readonly opts: PrometheusPluginOptions = {}) {}
 
     onInitialization(_: InitializationOptions): void {}
 
@@ -48,7 +48,7 @@ export class PrometheusPlugin implements MonitoredPlugin {
             this.histograms[scope] = new Histogram({
                 name: `${scope}_execution_time`,
                 help: `${scope}_execution_time`,
-                buckets: this.opts.defaultBuckets ?? DEFAULT_BUCKETS,
+                buckets: this.opts.defaultBuckets ?? [...DEFAULT_BUCKETS],
                 labelNames: ['result', ...Object.keys(options?.tags ?? {})],
             });
         }
