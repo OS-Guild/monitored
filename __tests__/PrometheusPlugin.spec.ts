@@ -1,6 +1,6 @@
 import {MonitorOptions} from '../src';
 import Monitor from '../src/Monitor';
-import {PrometheusPlugin} from '../src/plugins/PromethusPlugin';
+import {PrometheusPlugin} from '../src/plugins/PrometheusPlugin';
 import {Counter, Histogram, register} from 'prom-client';
 
 const histogram = {

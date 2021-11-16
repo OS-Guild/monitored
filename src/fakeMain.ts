@@ -1,5 +1,5 @@
 import {monitored, setGlobalInstance} from './globalInstance';
-import {PrometheusPlugin} from './plugins/PromethusPlugin';
+import {PrometheusPlugin} from './plugins/PrometheusPlugin';
 import {Monitor} from './index';
 
 const sleep = (time: number) => {
@@ -8,6 +8,7 @@ const sleep = (time: number) => {
 
 (async () => {
     const plugin = new PrometheusPlugin({});
+
     setGlobalInstance(
         new Monitor({
             serviceName: '',
