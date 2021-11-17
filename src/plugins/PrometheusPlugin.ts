@@ -1,12 +1,5 @@
 import {Counter, Histogram, register as registry} from 'prom-client';
-import {
-    InitializationOptions,
-    MetricOptions,
-    MonitoredPlugin,
-    OnFailureOptions,
-    OnStartOptions,
-    OnSuccessOptions,
-} from './types';
+import {MetricOptions, MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 
 export interface PrometheusPluginOptions {
     histogramBuckets?: number[];
