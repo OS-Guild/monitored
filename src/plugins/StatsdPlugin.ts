@@ -47,7 +47,7 @@ export class StatsdPlugin implements MonitoredPlugin {
         this.close = promisify(this.client.close.bind(this.client));
     }
 
-    onInitialization({logger}: InitializationOptions): void {
+    initialize({logger}: InitializationOptions): void {
         this.logger = logger;
     }
 

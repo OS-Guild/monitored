@@ -1,198 +1,189 @@
-import Monitor from '../src/Monitor';
 import {MonitorOptions} from '../src';
-import {
-    assertGaugeWasCalled,
-    assertIncrementWasCalled,
-    assertIncrementWasNotCalled,
-    assertTimingWasCalled,
-} from './utils';
-import {StatsdPlugin} from './__mocks__/plugins/StatsdPlugin';
+import Monitor from '../src/Monitor';
+import {MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from '../src/plugins/types';
 
-jest.mock('../src/plugins/StatsdPlugin', () => StatsdPlugin);
-jest.mock('../src/loggers', () => ({
-    consoleLogger: {
-        info: jest.fn(),
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-    },
-    emptyLogger: {
-        info: jest.fn(),
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-    },
-}));
-
-const plugin = new StatsdPlugin();
-const defaultMonitorOptions: MonitorOptions = {
-    serviceName: 'test-service',
-    plugins: [plugin],
+const mockPlugin: jest.Mocked<MonitoredPlugin> = {
+    initialize: jest.fn(),
+    onStart: jest.fn(),
+    onSuccess: jest.fn(),
+    onFailure: jest.fn(),
 };
 
+let monitor: Monitor;
+
+function doThrow(err: unknown) {
+    return () => {
+        throw err;
+    };
+}
+
+function initMonitor(opts?: Partial<MonitorOptions>) {
+    monitor = new Monitor({
+        serviceName: 'test-service',
+        plugins: [mockPlugin],
+        ...opts,
+    });
+}
+
+beforeEach(() => {
+    jest.resetAllMocks();
+    initMonitor();
+});
+
 describe('Monitor', () => {
-    beforeEach(() => {
-        jest.resetAllMocks();
+    describe('validate result', () => {
+        test('sync function', async () => {
+            const mockReturn = 10;
+            const mockFunc = jest.fn().mockReturnValue(mockReturn);
+
+            const res = monitor.monitored('test', mockFunc);
+
+            expect(mockFunc).toBeCalledTimes(1);
+            expect(res).toEqual(mockReturn);
+        });
+
+        test('async function', async () => {
+            const mockReturn = 10;
+            const mockFunc = jest.fn().mockResolvedValue(mockReturn);
+
+            const res = await monitor.monitored('test', mockFunc);
+
+            expect(mockFunc).toBeCalledTimes(1);
+            expect(res).toEqual(mockReturn);
+        });
+
+        test('sync function throws', async () => {
+            const mockError = new Error('error');
+            const mockFunc = jest.fn(doThrow(mockError));
+
+            try {
+                monitor.monitored('test', mockFunc);
+
+                fail('should throw error');
+            } catch (err) {
+                expect(err).toEqual(mockError);
+            }
+
+            expect(mockFunc).toBeCalledTimes(1);
+        });
+
+        test('async function throws', async () => {
+            const mockError = new Error('error');
+            const mockFunc = jest.fn().mockRejectedValue(mockError);
+
+            try {
+                await monitor.monitored('test', mockFunc);
+
+                fail('should throw error');
+            } catch (err) {
+                expect(err).toEqual(mockError);
+            }
+
+            expect(mockFunc).toBeCalledTimes(1);
+        });
     });
 
-    describe('monitored', () => {
-        describe('validate result', () => {
-            test('sync function', async () => {
-                const mockReturn = 10;
-                const mockFunc = jest.fn().mockReturnValue(mockReturn);
-                const monitor = new Monitor({...defaultMonitorOptions});
+    test.each([true, false])('shouldMonitorExecutionStart=%b', (shouldMonitorExecutionStart) => {
+        const mockReturn = 10;
+        const mockFunc = jest.fn().mockReturnValue(mockReturn);
+        initMonitor({shouldMonitorExecutionStart});
 
-                const res = monitor.monitored('test', mockFunc);
+        const res = monitor.monitored('test', mockFunc);
 
-                expect(mockFunc).toBeCalledTimes(1);
-                expect(res).toEqual(mockReturn);
+        expect(mockFunc).toBeCalledTimes(1);
+        expect(res).toEqual(mockReturn);
+
+        expect(mockPlugin.onStart).toHaveBeenCalledTimes(shouldMonitorExecutionStart ? 1 : 0);
+    });
+
+    test.each([true, false])('result type (isAsync=%b)', async (isAsync) => {
+        const mockReturn = 10;
+        const mockFunc = jest.fn(() => (isAsync ? Promise.resolve(mockReturn) : mockReturn));
+
+        const res = monitor.monitored('test', mockFunc);
+
+        if (isAsync) {
+            await expect(res).resolves.toBe(mockReturn);
+        } else {
+            expect(res).toBe(mockReturn);
+        }
+        expect(mockFunc).toBeCalledTimes(1);
+    });
+
+    describe.each([true, false])('error (isAsync=%b)', (isAsync) => {
+        const mockError = new Error('error');
+        const mockFunc = () => {
+            if (isAsync) {
+                return Promise.reject(mockError);
+            }
+            throw mockError;
+        };
+
+        test('default options', async () => {
+            if (isAsync) {
+                await expect(monitor.monitored('test', mockFunc)).rejects.toBe(mockError);
+            } else {
+                expect(() => monitor.monitored('test', mockFunc)).toThrow(mockError);
+            }
+
+            expect(mockPlugin.onFailure).toHaveBeenCalled();
+        });
+    });
+
+    describe('options', () => {
+        test('context (on success)', async () => {
+            const context = {a: 'a', b: 'bbbbb', c: true};
+            monitor.monitored('test', () => 123, {context});
+
+            expect(mockPlugin.onStart).toHaveBeenCalledWith<[OnStartOptions]>({
+                scope: 'test',
+                options: {context},
             });
 
-            test('async function', async () => {
-                const mockReturn = 10;
-                const mockFunc = jest.fn().mockResolvedValue(mockReturn);
-                const monitor = new Monitor({...defaultMonitorOptions});
-
-                const res = await monitor.monitored('test', mockFunc);
-
-                expect(mockFunc).toBeCalledTimes(1);
-                expect(res).toEqual(mockReturn);
-            });
-
-            test('sync function throws', async () => {
-                const mockError = new Error('error');
-                const mockFunc = jest.fn(() => {
-                    throw mockError;
-                });
-                const monitor = new Monitor({...defaultMonitorOptions});
-
-                try {
-                    monitor.monitored('test', mockFunc);
-
-                    fail('should throw error');
-                } catch (err) {
-                    expect(err).toEqual(mockError);
-                }
-
-                expect(mockFunc).toBeCalledTimes(1);
-            });
-
-            test('async function throws', async () => {
-                const mockError = new Error('error');
-                const mockFunc = jest.fn().mockRejectedValue(mockError);
-                const monitor = new Monitor({...defaultMonitorOptions});
-
-                try {
-                    await monitor.monitored('test', mockFunc);
-
-                    fail('should throw error');
-                } catch (err) {
-                    expect(err).toEqual(mockError);
-                }
-
-                expect(mockFunc).toBeCalledTimes(1);
+            expect(mockPlugin.onSuccess).toHaveBeenCalledWith<[OnSuccessOptions]>({
+                scope: 'test',
+                executionTime: expect.any(Number),
+                options: {
+                    context,
+                },
             });
         });
 
-        describe('shouldMonitorExecutionStart', () => {
-            test('true', () => {
-                const mockReturn = 10;
-                const mockFunc = jest.fn().mockReturnValue(mockReturn);
-                const monitor = new Monitor({...defaultMonitorOptions, shouldMonitorExecutionStart: true});
+        test('context (on error)', async () => {
+            const context = {a: 'a', b: 'bbbbb', c: true};
+            expect(() => monitor.monitored('test', doThrow(new Error()), {context})).toThrow();
 
-                const res = monitor.monitored('test', mockFunc);
-
-                expect(mockFunc).toBeCalledTimes(1);
-                expect(res).toEqual(mockReturn);
-                assertIncrementWasCalled(plugin, 'test.start');
+            expect(mockPlugin.onStart).toHaveBeenCalledWith<[OnStartOptions]>({
+                scope: 'test',
+                options: {context},
             });
 
-            test('false', () => {
-                const mockReturn = 10;
-                const mockFunc = jest.fn().mockReturnValue(mockReturn);
-                const monitor = new Monitor({...defaultMonitorOptions, shouldMonitorExecutionStart: false});
-
-                const res = monitor.monitored('test', mockFunc);
-
-                expect(mockFunc).toBeCalledTimes(1);
-                expect(res).toEqual(mockReturn);
-                assertIncrementWasNotCalled(plugin, 'test.start');
+            expect(mockPlugin.onFailure).toHaveBeenCalledWith<[OnFailureOptions]>({
+                scope: 'test',
+                executionTime: expect.any(Number),
+                reason: expect.any(Error),
+                options: {context},
             });
         });
 
-        describe('result', () => {
-            const mockReturn = 10;
+        test('shouldMonitorSuccess', () => {
+            const shouldMonitorSuccess = (result: boolean): boolean => result;
 
-            [false, true].forEach((isAsync) => {
-                const mockFunc: any = isAsync ? () => Promise.resolve(mockReturn) : () => mockReturn;
+            monitor.monitored('test', () => false, {shouldMonitorSuccess});
+            expect(mockPlugin.onSuccess).not.toHaveBeenCalled();
 
-                describe(`${isAsync ? 'async' : 'sync'} function`, () => {
-                    test('default options', async () => {
-                        const monitor = new Monitor({...defaultMonitorOptions});
-
-                        const res = monitor.monitored('test', mockFunc);
-
-                        isAsync ? expect(res).toBeInstanceOf(Promise) : expect(res).toBe(10);
-
-                        if (isAsync) {
-                            await res;
-                        }
-
-                        assertIncrementWasCalled(plugin, 'test.success');
-                        assertGaugeWasCalled(plugin, 'test.ExecutionTime');
-                        assertTimingWasCalled(plugin, 'test.ExecutionTime');
-                    });
-                });
-            });
+            monitor.monitored('test', () => true, {shouldMonitorSuccess});
+            expect(mockPlugin.onSuccess).toHaveBeenCalled();
         });
 
-        describe('error', () => {
-            const mockError = new Error('error');
+        test('shouldMonitorError', () => {
+            const shouldMonitorError = (error: unknown) => !!error;
 
-            [false, true].forEach((isAsync) => {
-                const mockFunc: any = isAsync
-                    ? () => Promise.reject(mockError)
-                    : () => {
-                          throw mockError;
-                      };
+            expect(() => monitor.monitored('test', doThrow(null), {shouldMonitorError})).toThrow();
+            expect(mockPlugin.onFailure).not.toHaveBeenCalled();
 
-                describe(`${isAsync ? 'async' : 'sync'} function`, () => {
-                    test('default options', async () => {
-                        const monitor = new Monitor({...defaultMonitorOptions});
-
-                        try {
-                            const res = monitor.monitored('test', mockFunc);
-
-                            if (isAsync) {
-                                await res;
-                            }
-
-                            fail('Should not success');
-                        } catch (err) {
-                            expect(err).toEqual(mockError);
-
-                            assertIncrementWasCalled(plugin, 'test.error');
-                        }
-                    });
-
-                    test('send context', async () => {
-                        const context = {a: 'a', b: 'bbbbb', c: true};
-                        const monitor = new Monitor({...defaultMonitorOptions});
-
-                        try {
-                            const res = monitor.monitored('test', mockFunc, {context});
-
-                            if (isAsync) {
-                                await res;
-                            }
-
-                            fail('Should not success');
-                        } catch (err) {
-                            expect(err).toEqual(mockError);
-                        }
-                    });
-                });
-            });
+            expect(() => monitor.monitored('test', doThrow(new Error()), {shouldMonitorError})).toThrow();
+            expect(mockPlugin.onFailure).toHaveBeenCalled();
         });
     });
 });

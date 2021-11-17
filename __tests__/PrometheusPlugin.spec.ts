@@ -1,6 +1,6 @@
 import {Counter, Histogram, register} from 'prom-client';
 import Monitor from '../src/Monitor';
-import {PrometheusPlugin, DEFAULT_BUCKETS} from '../src/plugins/PrometheusPlugin';
+import {PrometheusPlugin, DEFAULT_BUCKETS, PrometheusPluginOptions} from '../src/plugins/PrometheusPlugin';
 
 const histogram = {
     observe: jest.fn(),
@@ -11,29 +11,31 @@ const counter = {
 };
 
 jest.mock('prom-client', () => ({
-    Histogram: jest.fn().mockImplementation(() => {
-        return histogram;
-    }),
-    Counter: jest.fn().mockImplementation(() => {
-        return counter;
-    }),
-    // TODO: Find a better way to mock this
-    register: {
-        metrics: jest.fn(),
-    },
+    Histogram: jest.fn().mockImplementation(() => histogram),
+    Counter: jest.fn().mockImplementation(() => counter),
+    register: {metrics: jest.fn()},
 }));
-
-const plugin = new PrometheusPlugin();
-const monitor = new Monitor({
-    serviceName: 'test-service',
-    plugins: [plugin],
-});
 
 beforeEach(() => {
     jest.clearAllMocks();
 });
 
 describe('PrometheusPlugin', () => {
+    let plugin: PrometheusPlugin;
+    let monitor: Monitor;
+
+    function initMonitor(opts?: PrometheusPluginOptions) {
+        plugin = new PrometheusPlugin(opts);
+        monitor = new Monitor({
+            serviceName: 'test-service',
+            plugins: [plugin],
+        });
+    }
+
+    beforeEach(() => {
+        initMonitor();
+    });
+
     it('onSuccess', () => {
         monitor.monitored('abc', () => 123);
 
@@ -73,22 +75,21 @@ describe('PrometheusPlugin', () => {
     });
 
     it('should create different counters and histograms per scope', () => {
-        // TODO: check why the test fails if we replace 'abcd' with 'abc'
-        monitor.monitored('abcd', () => 123);
+        monitor.monitored('abc', () => 123);
         monitor.monitored('123', () => 'abc');
 
         expect(Counter).toHaveBeenCalledTimes(2);
         expect(Histogram).toHaveBeenCalledTimes(2);
 
         expect(Counter).toHaveBeenCalledWith({
-            name: `abcd_count`,
-            help: `abcd_count`,
+            name: `abc_count`,
+            help: `abc_count`,
             labelNames: ['result'],
         });
 
         expect(Histogram).toHaveBeenCalledWith({
-            name: `abcd_execution_time`,
-            help: `abcd_execution_time`,
+            name: `abc_execution_time`,
+            help: `abc_execution_time`,
             buckets: DEFAULT_BUCKETS,
             labelNames: ['result'],
         });
@@ -103,6 +104,20 @@ describe('PrometheusPlugin', () => {
             name: `123_execution_time`,
             help: `123_execution_time`,
             buckets: DEFAULT_BUCKETS,
+            labelNames: ['result'],
+        });
+    });
+
+    it('should allow passing different buckets for histograms', () => {
+        const histogramBuckets = [1, 2, 3];
+        initMonitor({histogramBuckets});
+
+        monitor.monitored('abc', () => 123);
+
+        expect(Histogram).toHaveBeenCalledWith({
+            name: `abc_execution_time`,
+            help: `abc_execution_time`,
+            buckets: histogramBuckets,
             labelNames: ['result'],
         });
     });

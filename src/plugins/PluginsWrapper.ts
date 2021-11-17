@@ -1,19 +1,19 @@
 import {InitializationOptions, MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 
-export class PluginsWrapper implements Omit<MonitoredPlugin, 'onInitialization'> {
-    constructor(private readonly providers: MonitoredPlugin[], opts: InitializationOptions) {
-        providers.forEach((p) => p.onInitialization(opts));
+export class PluginsWrapper implements Omit<MonitoredPlugin, 'initialize'> {
+    constructor(private readonly plugins: MonitoredPlugin[], opts: InitializationOptions) {
+        plugins.forEach((p) => p.initialize?.(opts));
     }
 
     onStart(opts: OnStartOptions): void {
-        this.providers.forEach((p) => p.onStart(opts));
+        this.plugins.forEach((p) => p.onStart(opts));
     }
 
     onSuccess(opts: OnSuccessOptions): void {
-        this.providers.forEach((p) => p.onSuccess(opts));
+        this.plugins.forEach((p) => p.onSuccess(opts));
     }
 
     onFailure(opts: OnFailureOptions): void {
-        this.providers.forEach((p) => p.onFailure(opts));
+        this.plugins.forEach((p) => p.onFailure(opts));
     }
 }

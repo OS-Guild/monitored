@@ -1,26 +1,26 @@
 import {mocked} from 'ts-jest/utils';
-import {StatsdPlugin} from './__mocks__/plugins/StatsdPlugin';
+import {MockStatsdPlugin} from './__mocks__/plugins/StatsdPlugin';
 
-export function assertIncrementWasCalled(plugin: StatsdPlugin, metricName: string) {
+export function assertIncrementWasCalled(plugin: MockStatsdPlugin, metricName: string) {
     expect(mocked(plugin.increment)).toHaveBeenCalledWith(metricName, 1, undefined);
 }
 
-export function assertIncrementWasNotCalled(plugin: StatsdPlugin, metricName: string) {
+export function assertIncrementWasNotCalled(plugin: MockStatsdPlugin, metricName: string) {
     expect(mocked(plugin.increment)).not.toHaveBeenCalledWith(metricName, 1, undefined);
 }
 
-export function assertTimingWasCalled(plugin: StatsdPlugin, metricName: string) {
+export function assertTimingWasCalled(plugin: MockStatsdPlugin, metricName: string) {
     expect(mocked(plugin.timing)).toHaveBeenCalledWith(metricName, expect.any(Number), undefined);
 }
 
-export function assertTimingWasNotCalled(plugin: StatsdPlugin, metricName: string) {
+export function assertTimingWasNotCalled(plugin: MockStatsdPlugin, metricName: string) {
     expect(mocked(plugin.timing)).not.toHaveBeenCalledWith(metricName, expect.any(Number), undefined);
 }
 
-export function assertGaugeWasCalled(plugin: StatsdPlugin, metricName: string) {
+export function assertGaugeWasCalled(plugin: MockStatsdPlugin, metricName: string) {
     expect(mocked(plugin.gauge)).toHaveBeenCalledWith(metricName, expect.any(Number), undefined);
 }
 
-export function assertGaugeWasNotCalled(plugin: StatsdPlugin, metricName: string) {
+export function assertGaugeWasNotCalled(plugin: MockStatsdPlugin, metricName: string) {
     expect(mocked(plugin.gauge)).not.toHaveBeenCalledWith(metricName, expect.any(Number), undefined);
 }

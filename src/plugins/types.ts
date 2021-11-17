@@ -26,7 +26,7 @@ export interface OnFailureOptions extends EventOptions {
 }
 
 export interface MonitoredPlugin {
-    onInitialization(opts: InitializationOptions): void;
+    initialize?(opts: InitializationOptions): void;
 
     onStart(opts: OnStartOptions): void;
 

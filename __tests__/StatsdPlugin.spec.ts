@@ -3,7 +3,7 @@ import {mocked} from 'ts-jest/utils';
 import Monitor from '../src/Monitor';
 import {StatsdPlugin, StatsdPluginOptions} from '../src/plugins/StatsdPlugin';
 import {assertGaugeWasCalled, assertIncrementWasCalled, assertTimingWasCalled} from './utils';
-import {StatsdPlugin as MockStatsDPlugin} from './__mocks__/plugins/StatsdPlugin';
+import {MockStatsdPlugin} from './__mocks__/plugins/StatsdPlugin';
 
 jest.mock('hot-shots');
 
@@ -13,10 +13,10 @@ beforeEach(() => {
 
 describe('StatsdPlugin', () => {
     let monitor: Monitor;
-    let plugin: MockStatsDPlugin;
+    let plugin: MockStatsdPlugin;
 
     beforeEach(() => {
-        plugin = new MockStatsDPlugin();
+        plugin = new MockStatsdPlugin();
         monitor = new Monitor({
             serviceName: 'test-service',
             plugins: [plugin],
@@ -127,10 +127,10 @@ describe('StatsdPlugin - StatsdClient invocation', () => {
             client.increment('test', 3);
             client.increment('test', 3);
 
-            mockStatsdCallback(client.statsd.timing, {delay: 1000});
+            mockStatsdCallback(client.statsd.timing, {delay: 50});
             client.timing('asjkdsajk', 1000);
 
-            await expect(client.flush()).resolves.toEqual(true);
+            await expect(client.flush(50)).resolves.toEqual(true);
         });
 
         test('timeout', async () => {
@@ -138,27 +138,25 @@ describe('StatsdPlugin - StatsdClient invocation', () => {
             client.increment('test', 3);
             client.increment('test', 3);
 
-            mockStatsdCallback(client.statsd.timing, {delay: 1500});
+            mockStatsdCallback(client.statsd.timing, {delay: 100});
             client.timing('asjkdsajk', 1000);
 
-            await expect(client.flush(1000)).resolves.toEqual(false);
+            await expect(client.flush(50)).resolves.toEqual(false);
         });
 
         test('success - some promises return errors', async () => {
-            try {
-                mockStatsdCallback(client.statsd.increment);
-                client.increment('test', 3);
-                client.increment('test', 3);
+            mockStatsdCallback(client.statsd.increment);
+            client.increment('test', 3);
+            client.increment('test', 3);
 
-                mockStatsdCallback(client.statsd.timing, {delay: 1000, error: 'errrrrrr'});
-                client.timing('asjkdsajk', 1000);
+            mockStatsdCallback(client.statsd.timing, {delay: 50, error: 'errrrrrr'});
+            client.timing('asjkdsajk', 1000);
 
-                mockStatsdCallback(client.statsd.increment, {delay: 1000, error: 'err2'});
-                client.increment('test', 3);
-                client.increment('test', 3);
+            mockStatsdCallback(client.statsd.increment, {delay: 50, error: 'err2'});
+            client.increment('test', 3);
+            client.increment('test', 3);
 
-                await expect(client.flush(2000)).resolves.toEqual(true);
-            } catch (err) {}
+            await expect(client.flush(100)).resolves.toEqual(true);
         });
     });
 });

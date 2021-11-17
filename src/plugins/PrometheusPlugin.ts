@@ -9,7 +9,7 @@ import {
 } from './types';
 
 export interface PrometheusPluginOptions {
-    defaultBuckets?: number[];
+    histogramBuckets?: number[];
 }
 
 export const DEFAULT_BUCKETS: readonly number[] = Object.freeze([10, 20, 50, 100, 150, 200, 300, 500, 1000]);
@@ -19,8 +19,6 @@ export class PrometheusPlugin implements MonitoredPlugin {
     private readonly counters: Record<string, Counter<string>> = {};
 
     constructor(private readonly opts: PrometheusPluginOptions = {}) {}
-
-    onInitialization(_: InitializationOptions): void {}
 
     onStart({scope, options}: OnStartOptions): void {
         const {counter} = this.getMetrics(scope, options);
@@ -48,7 +46,7 @@ export class PrometheusPlugin implements MonitoredPlugin {
             this.histograms[scope] = new Histogram({
                 name: `${scope}_execution_time`,
                 help: `${scope}_execution_time`,
-                buckets: this.opts.defaultBuckets ?? [...DEFAULT_BUCKETS],
+                buckets: this.opts.histogramBuckets ?? [...DEFAULT_BUCKETS],
                 labelNames: ['result', ...Object.keys(options?.tags ?? {})],
             });
         }
