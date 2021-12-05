@@ -35,7 +35,7 @@ export class AsyncStatsD {
     increment = async (name: string, value: number = 1, tags?: Tags) => {
         try {
             await this.wrapStatsdPromise(this._increment(name, value, tags));
-        } catch (err) {
+        } catch (err: any) {
             this.logger.error(`Failed to send increment: ${name}`, err);
         }
     };
@@ -43,7 +43,7 @@ export class AsyncStatsD {
     gauge = async (name: string, value: number, tags?: Tags) => {
         try {
             await this.wrapStatsdPromise(this._gauge(name, value, tags));
-        } catch (err) {
+        } catch (err: any) {
             this.logger.error(`Failed to send gauge: ${name}`, err);
         }
     };
@@ -51,13 +51,13 @@ export class AsyncStatsD {
     timing = async (name: string, value: number, tags?: Tags) => {
         try {
             await this.wrapStatsdPromise(this._timing(name, value, tags));
-        } catch (err) {
+        } catch (err: any) {
             this.logger.error(`Failed to send timing: ${name}`, err);
         }
     };
 
     flush = async (timeout: number = 2000) => {
-        const remainingPromises = Object.values(this.pendingPromises).map(p => p.catch(noop));
+        const remainingPromises = Object.values(this.pendingPromises).map((p) => p.catch(noop));
 
         if (remainingPromises.length > 0) {
             try {
@@ -66,7 +66,7 @@ export class AsyncStatsD {
                     Promise.all(remainingPromises),
                     'Timeout reached, stopped wait for pending log writes'
                 );
-            } catch (err) {
+            } catch (err: any) {
                 this.logger.error('flush timeout', err);
 
                 return false;
