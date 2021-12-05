@@ -1,10 +1,6 @@
-<!--
-When creating a pull request, please ensure that the title of your PR follows [conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/). This will ensure correct versioning for the asurion-ui library.
--->
-
 ## Which issues does it affect?
 
-- ...
+-   ...
 
 <!--
 Example:
@@ -15,8 +11,8 @@ Example:
 
 ## What it does
 
-- ...
+-   ...
 
 ## What else do I need to know?
 
-- ...
+-   ...
