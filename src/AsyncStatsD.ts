@@ -57,7 +57,7 @@ export class AsyncStatsD {
     };
 
     flush = async (timeout: number = 2000) => {
-        const remainingPromises = Object.values(this.pendingPromises).map((p) => p.catch(noop));
+        const remainingPromises = Object.values(this.pendingPromises).map(p => p.catch(noop));
 
         if (remainingPromises.length > 0) {
             try {
