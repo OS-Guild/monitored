@@ -1,7 +1,6 @@
-
 import * as AsyncStatsD from './__mocks__/AsyncStatsD';
 
-import {mocked} from 'ts-jest/utils';
+import {mocked} from 'jest-mock';
 import Monitor from '../src/Monitor';
 import {consoleLogger} from '../src/loggers';
 import {MonitorOptions} from '../src';
@@ -231,9 +230,11 @@ describe('Monitor', () => {
                 const mockFunc: any = isAsync
                     ? () =>
                           new Promise<number>((_, reject) => {
-                            reject(mockError);
+                              reject(mockError);
                           })
-                    : () => { throw mockError };
+                    : () => {
+                          throw mockError;
+                      };
 
                 describe(`${isAsync ? 'async' : 'sync'} function`, () => {
                     test('default options', async () => {
@@ -254,7 +255,7 @@ describe('Monitor', () => {
 
                             expect(mocked(consoleLogger.error)).toHaveBeenCalledWith('test.error', {
                                 err: mockError,
-                                extra: undefined
+                                extra: undefined,
                             });
                         }
                     });
@@ -276,7 +277,7 @@ describe('Monitor', () => {
 
                             expect(mocked(consoleLogger.error)).toHaveBeenCalledWith('test.error', {
                                 err: mockError,
-                                extra: context
+                                extra: context,
                             });
                         }
                     });
