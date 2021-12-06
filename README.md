@@ -6,9 +6,7 @@ A utility for monitoring services
 
 Monitored is a wrapper function that writes success/error logs and [StatsD](https://github.com/statsd/statsd) metrics (gague, increment, timing) after execution. It supports both asynchronous and synchronous functions.
 
-
-[![Dependency Status][david-image]][david-url]
-[![DevDependency Status][david-dev-image]][david-dev-url]
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Soluto/monitored/publish)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/soluto/tweek/blob/master/LICENSE.md)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier) 
 
@@ -148,8 +146,3 @@ See the [Contribution Guidelines](https://github.com/Soluto/monitored/blob/maste
 Licensed under the MIT [License](LICENSE), Copyright © 2020-present [Soluto](https://github.com/Soluto).
 
 Crafted by the [Soluto](https://github.com/Soluto) Open Sourcerers🧙
-
-[david-image]: https://img.shields.io/david/Soluto/monitored.svg
-[david-url]: https://david-dm.org/Soluto/monitored
-[david-dev-image]: https://img.shields.io/david/dev/Soluto/monitored.svg?label=devDependencies
-[david-dev-url]: https://david-dm.org/Soluto/monitored?type=dev
