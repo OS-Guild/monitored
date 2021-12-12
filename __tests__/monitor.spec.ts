@@ -83,7 +83,7 @@ describe('Monitor', () => {
         });
     });
 
-    test.each([true, false])('shouldMonitorExecutionStart=%b', (shouldMonitorExecutionStart) => {
+    test.each([true, false])('shouldMonitorExecutionStart=%b', shouldMonitorExecutionStart => {
         const mockReturn = 10;
         const mockFunc = jest.fn().mockReturnValue(mockReturn);
         initMonitor({shouldMonitorExecutionStart});
@@ -96,7 +96,7 @@ describe('Monitor', () => {
         expect(mockPlugin.onStart).toHaveBeenCalledTimes(shouldMonitorExecutionStart ? 1 : 0);
     });
 
-    test.each([true, false])('result type (isAsync=%b)', async (isAsync) => {
+    test.each([true, false])('result type (isAsync=%b)', async isAsync => {
         const mockReturn = 10;
         const mockFunc = jest.fn(() => (isAsync ? Promise.resolve(mockReturn) : mockReturn));
 
@@ -110,7 +110,7 @@ describe('Monitor', () => {
         expect(mockFunc).toBeCalledTimes(1);
     });
 
-    describe.each([true, false])('error (isAsync=%b)', (isAsync) => {
+    describe.each([true, false])('error (isAsync=%b)', isAsync => {
         const mockError = new Error('error');
         const mockFunc = () => {
             if (isAsync) {

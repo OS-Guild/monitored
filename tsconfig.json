@@ -17,7 +17,8 @@
         "noUnusedParameters": true,
         "lib": ["dom", "es2017"],
         "skipLibCheck": true,
-        "noImplicitAny": false
+        "noImplicitAny": false,
+        "useUnknownInCatchVariables": false
     },
     "include": ["src/**/*", "types/*.d.ts"],
     "exclude": ["__tests__", "dist"]

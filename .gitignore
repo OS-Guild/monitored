@@ -3,7 +3,6 @@ npm-debug.log
 .env
 .idea
 .npmrc
-.vscode
 yarn-error.log
 dist
 coverage
