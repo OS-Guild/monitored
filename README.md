@@ -42,7 +42,7 @@ To wire this package, you need to pass an `Options` object.
 <br>
 
 ```ts
-import { setGlobalInstance } from 'monitored';
+import { setGlobalInstance, Monitor } from 'monitored';
 
 setGlobalInstance(
   new Monitor({
