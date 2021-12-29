@@ -42,6 +42,8 @@ To wire this package, you need to pass an `Options` object.
 <br>
 
 ```ts
+import { setGlobalInstance } from 'monitored';
+
 setGlobalInstance(
   new Monitor({
     serviceName: 'monitored-example',
