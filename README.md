@@ -126,7 +126,9 @@ Wait until all current metrics are sent to the server. <br>
 We recommend using it at the end of lambda execution to make sure all metrics are sent.
 
 ```ts
-await monitor.flush(timeout: number = 2000)
+import { getGlobalInstance } from 'monitored';
+
+await getGlobalInstance().flush(timeout: number = 2000)
 ```
 <br>
 
