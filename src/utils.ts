@@ -18,3 +18,14 @@ export const timeoutPromise = function (ms: number, promise: Promise<any>, timeo
     // Returns a race between our timeout and the passed in promise
     return Promise.race([promise.then(identityClearTimeout(timeoutHandle!)), timeout]);
 };
+
+export const safe = fn => r => {
+    try {
+        if (fn) {
+            return fn(r);
+        }
+        return r;
+    } catch {
+        return r;
+    }
+};
