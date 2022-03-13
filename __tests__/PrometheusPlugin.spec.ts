@@ -10,9 +10,14 @@ const counter = {
     inc: jest.fn(),
 };
 
+const gauge = {
+    inc: jest.fn(),
+};
+
 jest.mock('prom-client', () => ({
     Histogram: jest.fn().mockImplementation(() => histogram),
     Counter: jest.fn().mockImplementation(() => counter),
+    Gauge: jest.fn().mockImplementation(() => gauge),
     register: {metrics: jest.fn()},
 }));
 

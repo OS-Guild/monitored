@@ -1,4 +1,4 @@
-import {mocked} from 'ts-jest/utils';
+import {mocked} from 'jest-mock';
 import {MockStatsdPlugin} from './__mocks__/plugins/StatsdPlugin';
 
 export function assertIncrementWasCalled(plugin: MockStatsdPlugin, metricName: string) {

@@ -1,5 +1,5 @@
 import {StatsCb, Tags} from 'hot-shots';
-import {mocked} from 'ts-jest/utils';
+import {mocked} from 'jest-mock';
 import Monitor from '../src/Monitor';
 import {StatsdPlugin, StatsdPluginOptions} from '../src/plugins/StatsdPlugin';
 import {assertGaugeWasCalled, assertIncrementWasCalled, assertTimingWasCalled} from './utils';

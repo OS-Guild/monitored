@@ -25,23 +25,20 @@ export class PluginsWrapper implements Omit<MonitoredPlugin, 'initialize'> {
     }
 
     async gauge(name: string, value: number, tags?: string[] | {[key: string]: string}): Promise<void> {
-        for (let index = 0; index < this.plugins.length; index++) {
-            const p = this.plugins[index];
+        for (const p of this.plugins) {
             await p.gauge(name, value, tags);
         }
     }
 
     async timing(name: string, value: number, tags?: string[] | {[key: string]: string}): Promise<void> {
-        for (let index = 0; index < this.plugins.length; index++) {
-            const p = this.plugins[index];
+        for (const p of this.plugins) {
             await p.timing(name, value, tags);
         }
     }
 
     async flush(timeout: number): Promise<boolean> {
         let result = true;
-        for (let index = 0; index < this.plugins.length; index++) {
-            const p = this.plugins[index];
+        for (const p of this.plugins) {
             result = result && (await p.flush(timeout));
         }
         return result;

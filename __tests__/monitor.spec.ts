@@ -7,6 +7,10 @@ const mockPlugin: jest.Mocked<MonitoredPlugin> = {
     onStart: jest.fn(),
     onSuccess: jest.fn(),
     onFailure: jest.fn(),
+    flush: jest.fn(),
+    gauge: jest.fn(),
+    increment: jest.fn(),
+    timing: jest.fn(),
 };
 
 let monitor: Monitor;
