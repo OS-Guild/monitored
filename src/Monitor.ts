@@ -35,7 +35,7 @@ class Monitor {
             if (result && result instanceof Promise) {
                 return result
                     .then((promiseResult: Unpromisify<T>) => this.onResult(promiseResult, scope, startTime, options))
-                    .catch((err) => this.onError(err, scope, startTime, options)) as unknown as T;
+                    .catch(err => this.onError(err, scope, startTime, options)) as unknown as T;
             }
             return this.onResult(result as Unpromisify<T>, scope, startTime, options) as T;
         } catch (err) {
@@ -68,6 +68,16 @@ class Monitor {
 
         throw err;
     }
+
+    getStatsdClient = () => undefined;
+
+    increment: PluginsWrapper['increment'] = async (...args) => await this.plugins?.increment(...args);
+
+    gauge: PluginsWrapper['gauge'] = async (...args) => await this.plugins?.gauge(...args);
+
+    timing: PluginsWrapper['timing'] = async (...args) => await this.plugins?.timing(...args);
+
+    flush: PluginsWrapper['flush'] = async (...args) => (await this.plugins?.flush(...args)) ?? true;
 }
 
 export default Monitor;

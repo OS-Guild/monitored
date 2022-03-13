@@ -1,4 +1,4 @@
-import {Counter, Histogram, register as registry} from 'prom-client';
+import {Counter, Histogram, register as registry, Gauge} from 'prom-client';
 import {MetricOptions, MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 
 export interface PrometheusPluginOptions {
@@ -10,6 +10,7 @@ export const DEFAULT_BUCKETS: readonly number[] = Object.freeze([10, 20, 50, 100
 export class PrometheusPlugin implements MonitoredPlugin {
     private readonly histograms: Record<string, Histogram<string>> = {};
     private readonly counters: Record<string, Counter<string>> = {};
+    private readonly gauges: Record<string, Gauge<string>> = {};
 
     constructor(private readonly opts: PrometheusPluginOptions = {}) {}
 
@@ -50,11 +51,37 @@ export class PrometheusPlugin implements MonitoredPlugin {
                 labelNames: ['result', ...Object.keys(options?.tags ?? {})],
             });
         }
+        if (!this.gauges[scope]) {
+            this.gauges[scope] = new Gauge({
+                name: `${scope}_gauge`,
+                help: `${scope}_gauge`,
+                labelNames: ['result', ...Object.keys(options?.tags ?? {})],
+            });
+        }
 
-        return {histogram: this.histograms[scope], counter: this.counters[scope]};
+        return {histogram: this.histograms[scope], counter: this.counters[scope], gauge: this.gauges[scope]};
     }
 
     async metrics(): Promise<string> {
         return await registry.metrics();
+    }
+
+    async increment(name: string, value: number = 1, tags?: Record<string, string>): Promise<void> {
+        const {counter} = this.getMetrics(name, {tags});
+        let internal = counter.labels(tags || {});
+        internal.inc(value);
+    }
+    async gauge(name: string, value: number, tags?: Record<string, string>): Promise<void> {
+        const {gauge} = this.getMetrics(name, {tags});
+        let internal = gauge.labels(tags || {});
+        internal.set(value);
+    }
+    async timing(name: string, value: number, tags?: Record<string, string>): Promise<void> {
+        const {histogram} = this.getMetrics(name, {tags});
+        let internal = histogram.labels(tags || {});
+        internal.observe(value);
+    }
+    async flush(): Promise<boolean> {
+        return true;
     }
 }

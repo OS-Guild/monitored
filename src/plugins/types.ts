@@ -33,4 +33,12 @@ export interface MonitoredPlugin {
     onSuccess(opts: OnSuccessOptions): void;
 
     onFailure(opts: OnFailureOptions): void;
+
+    increment(name: string, value: number, tags?: {[key: string]: string} | string[]): Promise<void>;
+
+    gauge(name: string, value: number, tags?: {[key: string]: string} | string[]): Promise<void>;
+
+    timing(name: string, value: number, tags?: {[key: string]: string} | string[]): Promise<void>;
+
+    flush(timeout: number): Promise<boolean>;
 }
