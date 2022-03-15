@@ -67,18 +67,20 @@ export class PrometheusPlugin implements MonitoredPlugin {
     }
 
     async increment(name: string, value: number = 1, tags?: Record<string, string>): Promise<void> {
-        const {counter} = this.getMetrics(name, {tags});
-        let internal = counter.labels(tags || {});
-        internal.inc(value);
+        this.getMetrics(name, {tags})
+            .counter.labels(tags || {})
+            .inc(value);
     }
     async gauge(name: string, value: number, tags?: Record<string, string>): Promise<void> {
-        const {gauge} = this.getMetrics(name, {tags});
-        let internal = gauge.labels(tags || {});
-        internal.set(value);
+        this.getMetrics(name, {tags})
+            .gauge.labels(tags || {})
+            .set(value);
     }
 
     async timing(name: string, value: number, tags?: Record<string, string>): Promise<void> {
-        this.getMetrics(name, {tags}).histogram.labels(tags ?? {}).observe(value);
+        this.getMetrics(name, {tags})
+            .histogram.labels(tags ?? {})
+            .observe(value);
     }
     async flush(): Promise<boolean> {
         return true;

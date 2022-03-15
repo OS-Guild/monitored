@@ -18,8 +18,7 @@ export class PluginsWrapper implements Omit<MonitoredPlugin, 'initialize'> {
     }
 
     async increment(name: string, value: number, tags?: {[key: string]: string} | string[]): Promise<void> {
-        for (let index = 0; index < this.plugins.length; index++) {
-            const p = this.plugins[index];
+        for (const p of this.plugins) {
             await p.increment(name, value, tags);
         }
     }
