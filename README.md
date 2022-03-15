@@ -37,15 +37,20 @@ npm install monitored
 
 To wire this package, you need to pass an `Options` object.
 
--   `serviceName` — Represents the name of the service you are monitoring (mandatory)
--   `logger` — Writes success and error logs with the passed in logger (optional)
--   `statsd` — Writes metrics to StatsD server (optional)
--   `mock` — Writes the metrics to logs instead of StatsD for debugging. defaults to false (optional)
--   `shouldMonitorExecutionStart` — When true will log execution start and will increment a metrics. defaults to true (optional)
--   `disableSuccessLogs` — When true, will not send success log. defaults to false (optional)
-    <br>
-
 ```ts
+interface MonitorOptions {
+    serviceName: string; // Represents the name of the service you are monitoring (mandatory)
+    plugins: MonitoredPlugin[]; // Stats plugins, statsD and/or prometheus (mandatory)
+    logging?: {
+        // Writes success and error logs with the passed in logger (optional)
+        logger: any; // logger (mandatory)
+        logErrorsAsWarnings?: boolean; // log errors as warnings (optional)
+        disableSuccessLogs?: boolean; // When true, will not send success log. defaults to false (optional)
+    };
+    shouldMonitorExecutionStart?: boolean; // When true will log execution start and will increment a metrics. defaults to true (optional)
+    mock?: boolean; //Writes the metrics to logs instead of StatsD for debugging. defaults to false (optional)
+}
+
 setGlobalInstance(
     new Monitor({
         serviceName: 'monitored-example',
