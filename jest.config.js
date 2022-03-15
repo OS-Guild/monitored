@@ -1,3 +1,4 @@
+/** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
     rootDir: '.',
     moduleFileExtensions: ['ts', 'tsx', 'js'],
