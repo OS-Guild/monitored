@@ -18,7 +18,6 @@ describe('StatsdPlugin', () => {
     beforeEach(() => {
         plugin = new MockStatsdPlugin();
         monitor = new Monitor({
-            serviceName: 'test-service',
             plugins: [plugin],
         });
     });

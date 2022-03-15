@@ -3,7 +3,7 @@ import {PrometheusPlugin} from './plugins/PrometheusPlugin';
 import {Monitor} from './index';
 
 const sleep = (time: number) => {
-    return new Promise((res) => setTimeout(res, time));
+    return new Promise(res => setTimeout(res, time));
 };
 
 (async () => {
@@ -11,7 +11,6 @@ const sleep = (time: number) => {
 
     setGlobalInstance(
         new Monitor({
-            serviceName: '',
             plugins: [plugin],
         })
     );
@@ -32,4 +31,4 @@ const sleep = (time: number) => {
     });
 
     console.log(await plugin.metrics());
-})().catch((e) => console.log(e));
+})().catch(e => console.log(e));

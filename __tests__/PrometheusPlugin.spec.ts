@@ -36,7 +36,6 @@ describe('PrometheusPlugin', () => {
     function initMonitor(opts?: PrometheusPluginOptions) {
         plugin = new PrometheusPlugin(opts);
         monitor = new Monitor({
-            serviceName: 'test-service',
             plugins: [plugin],
         });
     }

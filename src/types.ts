@@ -1,7 +1,6 @@
 import {MetricOptions, MonitoredPlugin} from './plugins/types';
 
 export interface MonitorOptions {
-    serviceName: string;
     plugins: MonitoredPlugin[];
     logging?: {
         logger: any;

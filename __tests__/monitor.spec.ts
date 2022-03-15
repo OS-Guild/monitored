@@ -23,7 +23,6 @@ function doThrow(err: unknown) {
 
 function initMonitor(opts?: Partial<MonitorOptions>) {
     monitor = new Monitor({
-        serviceName: 'test-service',
         plugins: [mockPlugin],
         ...opts,
     });

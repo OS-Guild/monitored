@@ -2,13 +2,14 @@ import 'dotenv/config';
 
 import {setGlobalInstance, monitored, Monitor} from '../src';
 
-setGlobalInstance(new Monitor({
-    serviceName: 'monitored-example',
-    logging: {
-        logger: {warn: console.warn, info: console.info, debug: console.debug, error: console.error},
-        logErrorsAsWarnings: true,
-    },
-}));
+setGlobalInstance(
+    new Monitor({
+        logging: {
+            logger: {warn: console.warn, info: console.info, debug: console.debug, error: console.error},
+            logErrorsAsWarnings: true,
+        },
+    })
+);
 
 monitored('foo1', () => 'bar1', {context: {id: 1}, logResult: true});
 
