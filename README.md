@@ -26,7 +26,7 @@ yarn add monitored
 ### Npm
 
 ```bash
-npm install --save monitored
+npm install monitored
 ```
 
 <br>
