@@ -8,16 +8,16 @@ export function setGlobalInstance(monitor: Monitor) {
 
 export function getGlobalInstance(): Monitor {
     if (!instance) {
-        instance = new Monitor({
-            serviceName: '',
-            plugins: [],
-        });
+        throw new Error('global instance no set');
     }
 
     return instance;
 }
 
 export const monitored: Monitor['monitored'] = (...args) => getGlobalInstance().monitored(...args);
+/**
+ * @deprecated since version 2.0
+ */
 export const getStatsdClient: Monitor['getStatsdClient'] = (...args) => getGlobalInstance().getStatsdClient(...args);
 export const increment: Monitor['increment'] = (...args) => getGlobalInstance().increment(...args);
 export const gauge: Monitor['gauge'] = (...args) => getGlobalInstance().gauge(...args);

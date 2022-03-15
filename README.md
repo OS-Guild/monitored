@@ -130,10 +130,6 @@ const result = monitored(
 );
 ```
 
-### `getStatsdClient`
-
-Returns the StatsD client directly. Helps with writing custom metrics
-
 ### `flush`
 
 Wait until all current metrics are sent to the server. <br>

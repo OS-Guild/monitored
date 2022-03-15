@@ -1,4 +1,4 @@
-import {MonitoredOptions, MonitorOptions, Unpromisify} from './types';
+import {MonitoredOptions, MonitorOptions} from './types';
 import {PluginsWrapper} from './plugins/PluginsWrapper';
 import {Logger} from './Logger';
 import {consoleLogger, emptyLogger} from './loggers';
@@ -45,21 +45,21 @@ class Monitor {
             const result = callable();
             if (result && result instanceof Promise) {
                 return result
-                    .then((promiseResult: Unpromisify<T>) => this.onResult(promiseResult, scope, startTime, options))
+                    .then((promiseResult: Awaited<T>) => this.onResult(promiseResult, scope, startTime, options))
                     .catch(err => this.onError(err, scope, startTime, options)) as unknown as T;
             }
-            return this.onResult(result as Unpromisify<T>, scope, startTime, options) as T;
+            return this.onResult(result as Awaited<T>, scope, startTime, options) as T;
         } catch (err) {
             this.onError(err, scope, startTime, options);
         }
     }
 
     private onResult<T>(
-        result: Unpromisify<T>,
+        result: Awaited<T>,
         scope: string,
         startTime: number,
         options: MonitoredOptions<T>
-    ): Unpromisify<T> {
+    ): Awaited<T> {
         const {shouldMonitorSuccess, logResult, level = 'debug', context, parseResult} = options;
         const executionTime = Date.now() - startTime;
 
@@ -98,6 +98,9 @@ class Monitor {
         log(message, {extra});
     };
 
+    /**
+     * @deprecated since version 2.0
+     */
     getStatsdClient = () => undefined;
 
     increment: PluginsWrapper['increment'] = async (...args) => await this.plugins?.increment(...args);
