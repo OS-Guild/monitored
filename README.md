@@ -61,7 +61,7 @@ setGlobalInstance(
                 host: 'host',
                 root: 'root',
             }),
-            new PrometheusPlugin({}),
+            new PrometheusPlugin(),
         ],
         shouldMonitorExecutionStart: true,
     })

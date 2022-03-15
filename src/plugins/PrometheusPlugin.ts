@@ -76,10 +76,9 @@ export class PrometheusPlugin implements MonitoredPlugin {
         let internal = gauge.labels(tags || {});
         internal.set(value);
     }
+
     async timing(name: string, value: number, tags?: Record<string, string>): Promise<void> {
-        const {histogram} = this.getMetrics(name, {tags});
-        let internal = histogram.labels(tags || {});
-        internal.observe(value);
+        this.getMetrics(name, {tags}).histogram.labels(tags ?? {}).observe(value);
     }
     async flush(): Promise<boolean> {
         return true;
