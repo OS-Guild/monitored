@@ -34,11 +34,11 @@ export interface MonitoredPlugin {
 
     onFailure(opts: OnFailureOptions): void;
 
-    increment(name: string, value: number, tags?: {[key: string]: string} | string[]): Promise<void>;
+    increment(name: string, value: number, tags?: Record<string, string>): Promise<void>;
 
-    gauge(name: string, value: number, tags?: {[key: string]: string} | string[]): Promise<void>;
+    gauge(name: string, value: number, tags?: Record<string, string>): Promise<void>;
 
-    timing(name: string, value: number, tags?: {[key: string]: string} | string[]): Promise<void>;
+    timing(name: string, value: number, tags?: Record<string, string>): Promise<void>;
 
     flush(timeout: number): Promise<boolean>;
 }

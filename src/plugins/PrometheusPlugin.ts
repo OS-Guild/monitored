@@ -15,24 +15,19 @@ export class PrometheusPlugin implements MonitoredPlugin {
     constructor(private readonly opts: PrometheusPluginOptions = {}) {}
 
     onStart({scope, options}: OnStartOptions): void {
-        const {counter} = this.getMetrics(scope, options);
-        counter.inc({result: 'start', ...options?.tags});
+        this.increment(scope, 1, options?.tags);
     }
 
     onSuccess({scope, options, executionTime}: OnSuccessOptions): void {
-        const {counter, histogram} = this.getMetrics(scope, options);
         const labels = {result: 'success', ...options?.tags};
-
-        counter.inc(labels);
-        histogram.observe(labels, executionTime);
+        this.increment(scope, 1, labels);
+        this.timing(scope, executionTime, labels);
     }
 
     onFailure({scope, options, executionTime}: OnFailureOptions): void {
-        const {counter, histogram} = this.getMetrics(scope, options);
         const labels = {result: 'failure', ...options?.tags};
-
-        counter.inc(labels);
-        histogram.observe(labels, executionTime);
+        this.increment(scope, 1, labels);
+        this.timing(scope, executionTime, labels);
     }
 
     private getMetrics(scope: string, options?: MetricOptions) {

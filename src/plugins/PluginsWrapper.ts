@@ -17,29 +17,20 @@ export class PluginsWrapper implements Omit<MonitoredPlugin, 'initialize'> {
         this.plugins.forEach(p => p.onFailure(opts));
     }
 
-    async increment(name: string, value: number, tags?: {[key: string]: string} | string[]): Promise<void> {
-        for (const p of this.plugins) {
-            await p.increment(name, value, tags);
-        }
+    async increment(name: string, value: number, tags?: Record<string, string>): Promise<void> {
+        await Promise.all(this.plugins.map(p => p.increment(name, value, tags)));
     }
 
-    async gauge(name: string, value: number, tags?: string[] | {[key: string]: string}): Promise<void> {
-        for (const p of this.plugins) {
-            await p.gauge(name, value, tags);
-        }
+    async gauge(name: string, value: number, tags?: Record<string, string>): Promise<void> {
+        await Promise.all(this.plugins.map(p => p.gauge(name, value, tags)));
     }
 
-    async timing(name: string, value: number, tags?: string[] | {[key: string]: string}): Promise<void> {
-        for (const p of this.plugins) {
-            await p.timing(name, value, tags);
-        }
+    async timing(name: string, value: number, tags?: Record<string, string>): Promise<void> {
+        await Promise.all(this.plugins.map(p => p.timing(name, value, tags)));
     }
 
     async flush(timeout: number): Promise<boolean> {
-        let result = true;
-        for (const p of this.plugins) {
-            result = result && (await p.flush(timeout));
-        }
-        return result;
+        const results = await Promise.all(this.plugins.map(p => p.flush(timeout)));
+        return results.reduce((a, c) => a && c, true);
     }
 }
