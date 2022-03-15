@@ -2,16 +2,20 @@ import {Counter, Histogram, register} from 'prom-client';
 import Monitor from '../src/Monitor';
 import {PrometheusPlugin, DEFAULT_BUCKETS, PrometheusPluginOptions} from '../src/plugins/PrometheusPlugin';
 
+const histogramObserve = jest.fn();
+const counterInc = jest.fn();
+const gaugeSet = jest.fn();
+
 const histogram = {
-    observe: jest.fn(),
+    labels: jest.fn().mockImplementation(() => ({observe: histogramObserve})),
 };
 
 const counter = {
-    inc: jest.fn(),
+    labels: jest.fn().mockImplementation(() => ({inc: counterInc})),
 };
 
 const gauge = {
-    inc: jest.fn(),
+    labels: jest.fn().mockImplementation(() => ({set: gaugeSet})),
 };
 
 jest.mock('prom-client', () => ({
@@ -57,9 +61,12 @@ describe('PrometheusPlugin', () => {
             labelNames: ['result'],
         });
 
-        expect(counter.inc).toHaveBeenCalledWith({result: 'start'});
-        expect(counter.inc).toHaveBeenCalledWith({result: 'success'});
-        expect(histogram.observe).toHaveBeenCalledWith({result: 'success'}, expect.any(Number));
+        expect(counter.labels).toHaveBeenCalledWith({result: 'start'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).toHaveBeenCalledWith({result: 'success'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(histogram.labels).toHaveBeenCalledWith({result: 'success'});
+        expect(histogramObserve).toHaveBeenCalledWith(expect.any(Number));
     });
 
     it('onFailure', () => {
@@ -69,8 +76,10 @@ describe('PrometheusPlugin', () => {
             })
         ).toThrow();
 
-        expect(counter.inc).toHaveBeenCalledWith({result: 'start'});
-        expect(counter.inc).toHaveBeenCalledWith({result: 'failure'});
+        expect(counter.labels).toHaveBeenCalledWith({result: 'start'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).toHaveBeenCalledWith({result: 'failure'});
+        expect(counterInc).toHaveBeenCalledWith(1);
     });
 
     it('should call registry', () => {

@@ -1,5 +1,5 @@
 import {Counter, Histogram, register as registry, Gauge} from 'prom-client';
-import {MetricOptions, MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
+import {MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 
 export interface PrometheusPluginOptions {
     histogramBuckets?: number[];
@@ -15,7 +15,8 @@ export class PrometheusPlugin implements MonitoredPlugin {
     constructor(private readonly opts: PrometheusPluginOptions = {}) {}
 
     onStart({scope, options}: OnStartOptions): void {
-        this.increment(scope, 1, options?.tags);
+        const labels = {result: 'start', ...options?.tags};
+        this.increment(scope, 1, labels);
     }
 
     onSuccess({scope, options, executionTime}: OnSuccessOptions): void {
@@ -30,27 +31,27 @@ export class PrometheusPlugin implements MonitoredPlugin {
         this.timing(scope, executionTime, labels);
     }
 
-    private getMetrics(scope: string, options?: MetricOptions) {
+    private getMetrics(scope: string) {
         if (!this.histograms[scope]) {
             this.histograms[scope] = new Histogram({
                 name: `${scope}_execution_time`,
                 help: `${scope}_execution_time`,
                 buckets: this.opts.histogramBuckets ?? [...DEFAULT_BUCKETS],
-                labelNames: ['result', ...Object.keys(options?.tags ?? {})],
+                labelNames: ['result'],
             });
         }
         if (!this.counters[scope]) {
             this.counters[scope] = new Counter({
                 name: `${scope}_count`,
                 help: `${scope}_count`,
-                labelNames: ['result', ...Object.keys(options?.tags ?? {})],
+                labelNames: ['result'],
             });
         }
         if (!this.gauges[scope]) {
             this.gauges[scope] = new Gauge({
                 name: `${scope}_gauge`,
                 help: `${scope}_gauge`,
-                labelNames: ['result', ...Object.keys(options?.tags ?? {})],
+                labelNames: ['result'],
             });
         }
 
@@ -62,18 +63,18 @@ export class PrometheusPlugin implements MonitoredPlugin {
     }
 
     async increment(name: string, value: number = 1, tags?: Record<string, string>): Promise<void> {
-        this.getMetrics(name, {tags})
+        this.getMetrics(name)
             .counter.labels(tags || {})
             .inc(value);
     }
     async gauge(name: string, value: number, tags?: Record<string, string>): Promise<void> {
-        this.getMetrics(name, {tags})
+        this.getMetrics(name)
             .gauge.labels(tags || {})
             .set(value);
     }
 
     async timing(name: string, value: number, tags?: Record<string, string>): Promise<void> {
-        this.getMetrics(name, {tags})
+        this.getMetrics(name)
             .histogram.labels(tags ?? {})
             .observe(value);
     }
