@@ -1,9 +1,18 @@
 import 'dotenv/config';
 
 import {setGlobalInstance, monitored, Monitor} from '../src';
+import {StatsdPlugin} from '../src/plugins/StatsdPlugin';
 
 setGlobalInstance(
     new Monitor({
+        plugins: [
+            new StatsdPlugin({
+                serviceName: 'test',
+                apiKey: 'key',
+                host: 'host',
+                root: 'root',
+            }),
+        ],
         logging: {
             logger: {warn: console.warn, info: console.info, debug: console.debug, error: console.error},
             logErrorsAsWarnings: true,
