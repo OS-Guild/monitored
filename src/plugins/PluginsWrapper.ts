@@ -17,15 +17,15 @@ export class PluginsWrapper implements Omit<MonitoredPlugin, 'initialize'> {
         this.plugins.forEach(p => p.onFailure(opts));
     }
 
-    async increment(name: string, value: number, tags?: Record<string, string>): Promise<void> {
+    async increment(name: string, value?: number, tags?: Record<string, string>): Promise<void> {
         await Promise.all(this.plugins.map(p => p.increment(name, value, tags)));
     }
 
-    async gauge(name: string, value: number, tags?: Record<string, string>): Promise<void> {
+    async gauge(name: string, value?: number, tags?: Record<string, string>): Promise<void> {
         await Promise.all(this.plugins.map(p => p.gauge(name, value, tags)));
     }
 
-    async timing(name: string, value: number, tags?: Record<string, string>): Promise<void> {
+    async timing(name: string, value?: number, tags?: Record<string, string>): Promise<void> {
         await Promise.all(this.plugins.map(p => p.timing(name, value, tags)));
     }
 
