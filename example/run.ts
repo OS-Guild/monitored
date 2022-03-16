@@ -1,7 +1,6 @@
 import 'dotenv/config';
 
-import {setGlobalInstance, monitored, Monitor} from '../src';
-import {StatsdPlugin} from '../src';
+import {setGlobalInstance, StatsdPlugin, monitored, Monitor} from '../src';
 
 setGlobalInstance(
     new Monitor({
