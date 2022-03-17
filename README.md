@@ -108,6 +108,7 @@ type MonitoredOptions = {
     logErrorAsInfo?: boolean //enables to write the error as info log
     shouldMonitorError: e => boolean //determines if error should be monitored and logged, defaults to true
     shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true
+    tags?: Record<string, string>; //add more information/labels to metrics
 };
 ```
 
@@ -120,6 +121,18 @@ const result = monitored(
         console.log('example');
     },
     {context: {id: 'some context'}}
+);
+```
+
+#### You can use `tags` to add labels to metrics
+
+```ts
+const result = monitored(
+    'functionName',
+    () => {
+        console.log('example');
+    },
+    {tags: {'some-label': 'some-value'}}
 );
 ```
 
