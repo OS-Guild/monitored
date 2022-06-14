@@ -87,8 +87,6 @@ const result = monitored('functionName', () => {
 });
 ```
 
-<br>
-
 ### You can also pass a `options` argument to `monitored`:
 
 ```ts
@@ -137,22 +135,16 @@ We recommend using it at the end of lambda execution to make sure all metrics ar
 await monitor.flush(timeout: number = 2000)
 ```
 
-<br>
-
 ## Testing
 
 1. Create `.env` file with `STATSD_API_KEY` and `STATSD_HOST` values
 2. Run `yarn example`
 3. Verify manually that console logs and metrics in the statsd server are valid
 
-<br>
-
 ## Contributing
 
 Before creating an issue, please ensure that it hasn't already been reported/suggested, and double-check the documentation.
 See the [Contribution Guidelines](https://github.com/Soluto/monitored/blob/master/.github/CONTRIBUTING.md) if you'd like to submit a PR.
-
-<br>
 
 ## License
 
