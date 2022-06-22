@@ -128,7 +128,8 @@ We recommend using it at the end of lambda execution to make sure all metrics ar
 ```ts
 import { getGlobalInstance } from 'monitored';
 
-await getGlobalInstance().flush(timeout: number = 2000)
+const flushTimeout: number = 2000;
+await getGlobalInstance().flush(flushTimeout)
 ```
 <br>
 
