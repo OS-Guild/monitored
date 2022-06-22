@@ -5,3 +5,4 @@ npm-debug.log
 .npmrc
 yarn-error.log
 dist
+coverage
