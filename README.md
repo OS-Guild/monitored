@@ -31,6 +31,8 @@ npm install monitored
 To wire this package, you must pass an `Options` object.
 
 ```ts
+import { setGlobalInstance, Monitor } from 'monitored';
+
 interface MonitorOptions {
     serviceName: string; // Represents the name of the service you are monitoring (mandatory)
     plugins: MonitoredPlugin[]; // Stats plugins, statsD and/or prometheus (mandatory)
@@ -147,7 +149,10 @@ Wait until all current metrics are sent to the server. <br>
 We recommend using it at the end of lambda execution to ensure all metrics are sent.
 
 ```ts
-await monitor.flush(timeout: number = 2000)
+import { getGlobalInstance } from 'monitored';
+
+const flushTimeout: number = 2000;
+await getGlobalInstance().flush(flushTimeout)
 ```
 
 ## Testing
