@@ -58,11 +58,18 @@ class Monitor {
         startTime: number,
         options: MonitoredOptions<T>
     ): Awaited<T> {
-        const {shouldMonitorSuccess, logResult, level = 'debug', context, parseResult} = options;
+        const {shouldMonitorSuccess, logResult, level = 'debug', context, parseResult, isResultFound} = options;
         const executionTime = Date.now() - startTime;
 
         if (shouldMonitorSuccess?.(result) ?? true) {
             this.plugins.onSuccess({scope, executionTime, options});
+        }
+
+        if (isResultFound) {
+            try {
+                const isFound = isResultFound(result);
+                this.plugins.reportResultIsFound({scope, options}, isFound);
+            } catch {}
         }
 
         if (!this.config.disableSuccessLogs) {

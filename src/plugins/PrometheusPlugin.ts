@@ -1,5 +1,5 @@
 import {Counter, Histogram, register as registry, Gauge} from 'prom-client';
-import {MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
+import {EventOptions, MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 
 export interface PrometheusPluginOptions {
     histogramBuckets?: number[];
@@ -29,6 +29,12 @@ export class PrometheusPlugin implements MonitoredPlugin {
         const labels = {result: 'failure', ...options?.tags};
         this.increment(scope, 1, labels);
         this.timing(scope, executionTime, labels);
+    }
+
+    reportResultIsFound({scope, options}: EventOptions, isFound: boolean): void {
+        const isFoundLabel = isFound ? 'found' : 'notFound';
+        const labels = {result: isFoundLabel, ...options?.tags};
+        this.increment(scope, 1, labels);
     }
 
     private getMetrics(scope: string) {

@@ -7,6 +7,7 @@ const mockPlugin: jest.Mocked<MonitoredPlugin> = {
     onStart: jest.fn(),
     onSuccess: jest.fn(),
     onFailure: jest.fn(),
+    reportResultIsFound: jest.fn(),
     flush: jest.fn(),
     gauge: jest.fn(),
     increment: jest.fn(),
@@ -187,6 +188,30 @@ describe('Monitor', () => {
 
             expect(() => monitor.monitored('test', doThrow(new Error()), {shouldMonitorError})).toThrow();
             expect(mockPlugin.onFailure).toHaveBeenCalled();
+        });
+
+        test('reportIsResultFound', async () => {
+            const mockReturn = [1, 2];
+            const mockError = new Error('error');
+
+            const asyncMockFunc = jest.fn().mockResolvedValue(mockReturn);
+            const syncMockFunc = jest.fn().mockReturnValue(mockReturn);
+            const asyncFailMockFunc = jest.fn().mockRejectedValue(mockError);
+            const syncFailMockFunc = jest.fn(doThrow(mockError));
+
+            const isResultFoundCallable = (result: Awaited<number[]>): boolean => {
+                return result.length > 0;
+            };
+
+            await expect(
+                monitor.monitored('monitorFound', asyncFailMockFunc, {isResultFound: isResultFoundCallable})
+            ).rejects.toBe(mockError);
+            await monitor.monitored('monitorFound', asyncMockFunc, {isResultFound: isResultFoundCallable});
+            monitor.monitored('monitorFound', syncMockFunc, {isResultFound: isResultFoundCallable});
+            expect(() =>
+                monitor.monitored('monitorFound', syncFailMockFunc, {isResultFound: isResultFoundCallable})
+            ).toThrow(mockError);
+            expect(mockPlugin.reportResultIsFound).toHaveBeenCalledTimes(2);
         });
     });
 });
