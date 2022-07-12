@@ -12,7 +12,7 @@ import {MockStatsdPlugin} from './__mocks__/plugins/StatsdPlugin';
 
 jest.mock('hot-shots');
 
-const isResultFoundCallable = (result: Awaited<number[]>): boolean => {
+const isResultFoundCallback = (result: Awaited<number[]>): boolean => {
     return result.length > 0;
 };
 
@@ -42,7 +42,7 @@ describe('StatsdPlugin', () => {
     });
 
     test('onSuccess report result is found', () => {
-        monitor.monitored('abc', () => [1, 2], {shouldMonitorResultFound: isResultFoundCallable});
+        monitor.monitored('abc', () => [1, 2], {shouldMonitorResultFound: isResultFoundCallback});
 
         assertIncrementWasCalled(plugin, 'abc.start');
         assertIncrementWasCalled(plugin, 'abc.result.found');
@@ -51,7 +51,7 @@ describe('StatsdPlugin', () => {
     });
 
     test('onSuccess report result is not found', () => {
-        monitor.monitored('abc', () => [], {shouldMonitorResultFound: isResultFoundCallable});
+        monitor.monitored('abc', () => [], {shouldMonitorResultFound: isResultFoundCallback});
 
         assertIncrementWasCalled(plugin, 'abc.start');
         assertIncrementWasCalled(plugin, 'abc.result.notFound');
@@ -90,7 +90,7 @@ describe('StatsdPlugin', () => {
                         }
                         throw new Error('123');
                     },
-                    {shouldMonitorResultFound: isResultFoundCallable}
+                    {shouldMonitorResultFound: isResultFoundCallback}
                 )
                 .toThrow(new Error('error'));
 
