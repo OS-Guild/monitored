@@ -81,24 +81,22 @@ describe('StatsdPlugin', () => {
 
     test('onFailure dont report result is found', () => {
         expect(() => {
-            monitor
-                .monitored(
-                    'abc',
-                    () => {
-                        if (false) {
-                            return [1];
-                        }
-                        throw new Error('123');
-                    },
-                    {shouldMonitorResultFound: isResultFoundCallback}
-                )
-                .toThrow(new Error('error'));
+            monitor.monitored(
+                'abc',
+                () => {
+                    if (false) {
+                        return [1, 2];
+                    }
+                    throw new Error('123');
+                },
+                {shouldMonitorResultFound: isResultFoundCallback}
+            );
+        }).toThrow(new Error('123'));
 
-            assertIncrementWasCalled(plugin, 'abc.start');
-            assertIncrementWasCalled(plugin, 'abc.error');
-            assertIncrementWasNotCalled(plugin, 'abc.result.found');
-            assertIncrementWasNotCalled(plugin, 'abc.result.notFound');
-        });
+        assertIncrementWasCalled(plugin, 'abc.start');
+        assertIncrementWasCalled(plugin, 'abc.error');
+        assertIncrementWasNotCalled(plugin, 'abc.result.found');
+        assertIncrementWasNotCalled(plugin, 'abc.result.notFound');
     });
 });
 
