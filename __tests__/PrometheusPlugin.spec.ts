@@ -18,7 +18,7 @@ const gauge = {
     labels: jest.fn().mockImplementation(() => ({set: gaugeSet})),
 };
 
-const isResultFoundCallable = (result: Awaited<number[]>): boolean => {
+const isResultFoundCallback = (result: Awaited<number[]>): boolean => {
     return result.length > 0;
 };
 
@@ -75,7 +75,7 @@ describe('PrometheusPlugin', () => {
     });
 
     it('reports result found on onSuccess', () => {
-        monitor.monitored('abc', () => [1, 2, 3], {isResultFound: isResultFoundCallable});
+        monitor.monitored('abc', () => [1, 2, 3], {shouldMonitorResultFound: isResultFoundCallback});
 
         expect(Counter).toHaveBeenCalledWith({
             name: `abc_count`,
@@ -101,7 +101,7 @@ describe('PrometheusPlugin', () => {
     });
 
     it('reports result not found on onSuccess', () => {
-        monitor.monitored('abc', () => [], {isResultFound: isResultFoundCallable});
+        monitor.monitored('abc', () => [], {shouldMonitorResultFound: isResultFoundCallback});
 
         expect(Counter).toHaveBeenCalledWith({
             name: `abc_count`,
@@ -151,7 +151,7 @@ describe('PrometheusPlugin', () => {
                     }
                     throw new Error('123');
                 },
-                {isResultFound: isResultFoundCallable}
+                {shouldMonitorResultFound: isResultFoundCallback}
             )
         ).toThrow();
 

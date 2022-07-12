@@ -42,7 +42,7 @@ describe('StatsdPlugin', () => {
     });
 
     test('onSuccess report result is found', () => {
-        monitor.monitored('abc', () => [1, 2], {isResultFound: isResultFoundCallable});
+        monitor.monitored('abc', () => [1, 2], {shouldMonitorResultFound: isResultFoundCallable});
 
         assertIncrementWasCalled(plugin, 'abc.start');
         assertIncrementWasCalled(plugin, 'abc.result.found');
@@ -51,7 +51,7 @@ describe('StatsdPlugin', () => {
     });
 
     test('onSuccess report result is not found', () => {
-        monitor.monitored('abc', () => [], {isResultFound: isResultFoundCallable});
+        monitor.monitored('abc', () => [], {shouldMonitorResultFound: isResultFoundCallable});
 
         assertIncrementWasCalled(plugin, 'abc.start');
         assertIncrementWasCalled(plugin, 'abc.result.notFound');
@@ -90,7 +90,7 @@ describe('StatsdPlugin', () => {
                         }
                         throw new Error('123');
                     },
-                    {isResultFound: isResultFoundCallable}
+                    {shouldMonitorResultFound: isResultFoundCallable}
                 )
                 .toThrow(new Error('error'));
 
