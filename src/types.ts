@@ -19,4 +19,5 @@ export interface MonitoredOptions<T> extends MetricOptions {
     logAsError?: boolean;
     logErrorAsInfo?: boolean;
     shouldMonitorSuccess?: (r: Awaited<T>) => boolean;
+    shouldMonitorResultFound?: (r: Awaited<T>) => boolean;
 }

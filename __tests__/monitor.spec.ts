@@ -7,6 +7,7 @@ const mockPlugin: jest.Mocked<MonitoredPlugin> = {
     onStart: jest.fn(),
     onSuccess: jest.fn(),
     onFailure: jest.fn(),
+    reportResultIsFound: jest.fn(),
     flush: jest.fn(),
     gauge: jest.fn(),
     increment: jest.fn(),
@@ -187,6 +188,51 @@ describe('Monitor', () => {
 
             expect(() => monitor.monitored('test', doThrow(new Error()), {shouldMonitorError})).toThrow();
             expect(mockPlugin.onFailure).toHaveBeenCalled();
+        });
+
+        describe('reportIsResultFound for %p', () => {
+            const callBack = (result: Awaited<number[]>): boolean => {
+                return result.length > 0;
+            };
+
+            test('async success', async () => {
+                const returnedValue = [1, 2];
+                const asyncMockFunc = jest.fn().mockResolvedValue(returnedValue);
+
+                await monitor.monitored('monitorFound', asyncMockFunc, {shouldMonitorResultFound: callBack});
+                expect(mockPlugin.reportResultIsFound).toHaveBeenCalledTimes(1);
+            });
+
+            test('async failed', async () => {
+                const mockError = new Error('error');
+                const asyncFailMockFunc = async () => {
+                    return Promise.reject(mockError);
+                };
+
+                await expect(
+                    monitor.monitored('monitorFound', asyncFailMockFunc, {shouldMonitorResultFound: callBack})
+                ).rejects.toBe(mockError);
+                expect(mockPlugin.reportResultIsFound).toHaveBeenCalledTimes(0);
+            });
+
+            test('sync success', () => {
+                const returnedValue = [1, 2];
+                const syncMockFunc = jest.fn().mockReturnValue(returnedValue);
+
+                monitor.monitored('monitorFound', syncMockFunc, {shouldMonitorResultFound: callBack});
+                expect(mockPlugin.reportResultIsFound).toHaveBeenCalledTimes(1);
+            });
+
+            test('sync failed', () => {
+                const mockError = new Error('error');
+                const syncFailMockFunc = () => {
+                    throw mockError;
+                };
+                expect(() =>
+                    monitor.monitored('monitorFound', syncFailMockFunc, {shouldMonitorResultFound: callBack})
+                ).toThrow(mockError);
+                expect(mockPlugin.reportResultIsFound).toHaveBeenCalledTimes(0);
+            });
         });
     });
 });

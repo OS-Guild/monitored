@@ -2,10 +2,19 @@ import {StatsCb, Tags} from 'hot-shots';
 import {mocked} from 'jest-mock';
 import Monitor from '../src/Monitor';
 import {StatsdPlugin, StatsdPluginOptions} from '../src/plugins/StatsdPlugin';
-import {assertGaugeWasCalled, assertIncrementWasCalled, assertTimingWasCalled} from './utils';
+import {
+    assertGaugeWasCalled,
+    assertIncrementWasCalled,
+    assertIncrementWasNotCalled,
+    assertTimingWasCalled,
+} from './utils';
 import {MockStatsdPlugin} from './__mocks__/plugins/StatsdPlugin';
 
 jest.mock('hot-shots');
+
+const isResultFoundCallback = (result: Awaited<number[]>): boolean => {
+    return result.length > 0;
+};
 
 beforeEach(() => {
     jest.resetAllMocks();
@@ -26,6 +35,26 @@ describe('StatsdPlugin', () => {
         monitor.monitored('abc', () => 123);
 
         assertIncrementWasCalled(plugin, 'abc.start');
+        assertIncrementWasNotCalled(plugin, 'abc.result.found');
+        assertIncrementWasNotCalled(plugin, 'abc.result.notFound');
+        assertGaugeWasCalled(plugin, 'abc.ExecutionTime');
+        assertTimingWasCalled(plugin, 'abc.ExecutionTime');
+    });
+
+    test('onSuccess report result is found', () => {
+        monitor.monitored('abc', () => [1, 2], {shouldMonitorResultFound: isResultFoundCallback});
+
+        assertIncrementWasCalled(plugin, 'abc.start');
+        assertIncrementWasCalled(plugin, 'abc.result.found');
+        assertGaugeWasCalled(plugin, 'abc.ExecutionTime');
+        assertTimingWasCalled(plugin, 'abc.ExecutionTime');
+    });
+
+    test('onSuccess report result is not found', () => {
+        monitor.monitored('abc', () => [], {shouldMonitorResultFound: isResultFoundCallback});
+
+        assertIncrementWasCalled(plugin, 'abc.start');
+        assertIncrementWasCalled(plugin, 'abc.result.notFound');
         assertGaugeWasCalled(plugin, 'abc.ExecutionTime');
         assertTimingWasCalled(plugin, 'abc.ExecutionTime');
     });
@@ -46,6 +75,28 @@ describe('StatsdPlugin', () => {
 
         assertIncrementWasCalled(plugin, 'abc.start');
         assertIncrementWasCalled(plugin, 'abc.error');
+        assertIncrementWasNotCalled(plugin, 'abc.result.found');
+        assertIncrementWasNotCalled(plugin, 'abc.result.notFound');
+    });
+
+    test('onFailure dont report result is found', () => {
+        expect(() => {
+            monitor.monitored(
+                'abc',
+                () => {
+                    if (false) {
+                        return [1, 2];
+                    }
+                    throw new Error('123');
+                },
+                {shouldMonitorResultFound: isResultFoundCallback}
+            );
+        }).toThrow(new Error('123'));
+
+        assertIncrementWasCalled(plugin, 'abc.start');
+        assertIncrementWasCalled(plugin, 'abc.error');
+        assertIncrementWasNotCalled(plugin, 'abc.result.found');
+        assertIncrementWasNotCalled(plugin, 'abc.result.notFound');
     });
 });
 

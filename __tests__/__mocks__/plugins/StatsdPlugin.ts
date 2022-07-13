@@ -7,6 +7,7 @@ export class MockStatsdPlugin {
     onStart = StatsdPlugin.prototype.onStart;
     onSuccess = StatsdPlugin.prototype.onSuccess;
     onFailure = StatsdPlugin.prototype.onFailure;
+    reportResultIsFound = StatsdPlugin.prototype.reportResultIsFound;
     increment = jest.fn();
     gauge = jest.fn();
     timing = jest.fn();

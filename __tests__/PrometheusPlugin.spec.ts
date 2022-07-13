@@ -18,6 +18,10 @@ const gauge = {
     labels: jest.fn().mockImplementation(() => ({set: gaugeSet})),
 };
 
+const isResultFoundCallback = (result: Awaited<number[]>): boolean => {
+    return result.length > 0;
+};
+
 jest.mock('prom-client', () => ({
     Histogram: jest.fn().mockImplementation(() => histogram),
     Counter: jest.fn().mockImplementation(() => counter),
@@ -64,6 +68,60 @@ describe('PrometheusPlugin', () => {
         expect(counterInc).toHaveBeenCalledWith(1);
         expect(counter.labels).toHaveBeenCalledWith({result: 'success'});
         expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).not.toHaveBeenCalledWith({result: 'found'});
+        expect(counter.labels).not.toHaveBeenCalledWith({result: 'notFound'});
+        expect(histogram.labels).toHaveBeenCalledWith({result: 'success'});
+        expect(histogramObserve).toHaveBeenCalledWith(expect.any(Number));
+    });
+
+    it('reports result found on onSuccess', () => {
+        monitor.monitored('abc', () => [1, 2, 3], {shouldMonitorResultFound: isResultFoundCallback});
+
+        expect(Counter).toHaveBeenCalledWith({
+            name: `abc_count`,
+            help: `abc_count`,
+            labelNames: ['result'],
+        });
+
+        expect(Histogram).toHaveBeenCalledWith({
+            name: `abc_execution_time`,
+            help: `abc_execution_time`,
+            buckets: DEFAULT_BUCKETS,
+            labelNames: ['result'],
+        });
+
+        expect(counter.labels).toHaveBeenCalledWith({result: 'start'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).toHaveBeenCalledWith({result: 'success'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).toHaveBeenCalledWith({result: 'found'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(histogram.labels).toHaveBeenCalledWith({result: 'success'});
+        expect(histogramObserve).toHaveBeenCalledWith(expect.any(Number));
+    });
+
+    it('reports result not found on onSuccess', () => {
+        monitor.monitored('abc', () => [], {shouldMonitorResultFound: isResultFoundCallback});
+
+        expect(Counter).toHaveBeenCalledWith({
+            name: `abc_count`,
+            help: `abc_count`,
+            labelNames: ['result'],
+        });
+
+        expect(Histogram).toHaveBeenCalledWith({
+            name: `abc_execution_time`,
+            help: `abc_execution_time`,
+            buckets: DEFAULT_BUCKETS,
+            labelNames: ['result'],
+        });
+
+        expect(counter.labels).toHaveBeenCalledWith({result: 'start'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).toHaveBeenCalledWith({result: 'success'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).toHaveBeenCalledWith({result: 'notFound'});
+        expect(counterInc).toHaveBeenCalledWith(1);
         expect(histogram.labels).toHaveBeenCalledWith({result: 'success'});
         expect(histogramObserve).toHaveBeenCalledWith(expect.any(Number));
     });
@@ -79,6 +137,30 @@ describe('PrometheusPlugin', () => {
         expect(counterInc).toHaveBeenCalledWith(1);
         expect(counter.labels).toHaveBeenCalledWith({result: 'failure'});
         expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).not.toHaveBeenCalledWith({result: 'found'});
+        expect(counter.labels).not.toHaveBeenCalledWith({result: 'notFound'});
+    });
+
+    it('not to report result found onFailure', () => {
+        expect(() =>
+            monitor.monitored(
+                'abc',
+                () => {
+                    if (false) {
+                        return [1, 2];
+                    }
+                    throw new Error('123');
+                },
+                {shouldMonitorResultFound: isResultFoundCallback}
+            )
+        ).toThrow();
+
+        expect(counter.labels).toHaveBeenCalledWith({result: 'start'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).toHaveBeenCalledWith({result: 'failure'});
+        expect(counterInc).toHaveBeenCalledWith(1);
+        expect(counter.labels).not.toHaveBeenCalledWith({result: 'found'});
+        expect(counter.labels).not.toHaveBeenCalledWith({result: 'notFound'});
     });
 
     it('should call registry', () => {
