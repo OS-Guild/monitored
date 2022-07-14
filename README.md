@@ -31,7 +31,7 @@ npm install monitored
 To wire this package, you must pass an `Options` object.
 
 ```ts
-import { setGlobalInstance, Monitor } from 'monitored';
+import { setGlobalInstance, Monitor, StatsdPlugin, PrometheusPlugin } from 'monitored';
 
 interface MonitorOptions {
     serviceName: string; // Represents the name of the service you are monitoring (mandatory)
