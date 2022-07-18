@@ -34,8 +34,6 @@ export interface MonitoredPlugin {
 
     onFailure(opts: OnFailureOptions): void;
 
-    reportResultIsFound(opts: EventOptions, isFound: boolean): void;
-
     increment(name: string, value?: number, tags?: Record<string, string>): Promise<void>;
 
     gauge(name: string, value?: number, tags?: Record<string, string>): Promise<void>;

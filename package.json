@@ -1,6 +1,6 @@
 {
   "name": "monitored",
-  "version": "0.1.3",
+  "version": "0.1.2",
   "description": "A utility for monitoring services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

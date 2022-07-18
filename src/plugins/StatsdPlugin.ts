@@ -2,14 +2,7 @@ import {ClientOptions, StatsD, Tags} from 'hot-shots';
 import {promisify} from 'util';
 import {timeoutPromise} from '../utils';
 import {Logger} from '../Logger';
-import {
-    EventOptions,
-    InitializationOptions,
-    MonitoredPlugin,
-    OnFailureOptions,
-    OnStartOptions,
-    OnSuccessOptions,
-} from './types';
+import {InitializationOptions, MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 
 const noop = () => {};
 
@@ -72,11 +65,6 @@ export class StatsdPlugin implements MonitoredPlugin {
         this.increment(`${scope}.error`, 1, options?.tags);
     }
 
-    reportResultIsFound({scope, options}: EventOptions, isFound: boolean): void {
-        const isFoundLabel = isFound ? 'found' : 'notFound';
-        this.increment(`${scope}.result.${isFoundLabel}`, 1, options?.tags);
-    }
-
     get statsd() {
         return this.client;
     }
@@ -106,7 +94,7 @@ export class StatsdPlugin implements MonitoredPlugin {
     }
 
     async flush(timeout: number = 2000) {
-        const remainingPromises = Object.values(this.pendingPromises).map(p => p.catch(noop));
+        const remainingPromises = Object.values(this.pendingPromises).map((p) => p.catch(noop));
         if (!remainingPromises.length) {
             return true;
         }
