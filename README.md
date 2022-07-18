@@ -101,10 +101,9 @@ type MonitoredOptions = {
     level?: 'info' | 'debug'; //which log level to write (debug is the default)
     logAsError?: boolean; //enables to write error log in case the global `logErrorsAsWarnings` is on
     logErrorAsInfo?: boolean //enables to write the error as info log
-    shouldMonitorError: e => boolean // define the conditions of reporting and logging an error, defaults to true
-    shouldMonitorSuccess: (r: T) => boolean // define the conditions of reporting and logging wether a result was successful or not, defaults to true
+    shouldMonitorError: e => boolean //determines if error should be monitored and logged, defaults to true
+    shouldMonitorSuccess: (r: T) => boolean //determines if success result should be monitored and logged, defaults to true
     tags?: Record<string, string>; //add more information/labels to metrics
-    shouldMonitorResultFound?: (r: Awaited<T>) => boolean; // define the conditions of reporting wether a result was found or not, defaults to false
 };
 ```
 
@@ -141,18 +140,6 @@ const result = monitored(
         console.log('example');
     },
     {context: {id: 'some context'}, logResult: true}
-);
-```
-
-#### You can report an empty result by defining a predicate in  `shouldMonitorResultFound`:
-
-```ts
-const result = monitored(
-    'functionName',
-    () => {
-        return [1, 2, 3];
-    },
-    {context: {id: 'some context'}, shouldMonitorResultFound: (result)=>{return result.length > 0}}
 );
 ```
 

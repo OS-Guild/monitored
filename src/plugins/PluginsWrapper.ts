@@ -1,11 +1,4 @@
-import {
-    EventOptions,
-    InitializationOptions,
-    MonitoredPlugin,
-    OnFailureOptions,
-    OnStartOptions,
-    OnSuccessOptions,
-} from './types';
+import {InitializationOptions, MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 
 export class PluginsWrapper implements Omit<MonitoredPlugin, 'initialize'> {
     constructor(private readonly plugins: MonitoredPlugin[], opts: InitializationOptions) {
@@ -22,10 +15,6 @@ export class PluginsWrapper implements Omit<MonitoredPlugin, 'initialize'> {
 
     onFailure(opts: OnFailureOptions): void {
         this.plugins.forEach(p => p.onFailure(opts));
-    }
-
-    reportResultIsFound(opts: EventOptions, isFound: boolean): void {
-        this.plugins.forEach(p => p.reportResultIsFound(opts, isFound));
     }
 
     async increment(name: string, value?: number, tags?: Record<string, string>): Promise<void> {
