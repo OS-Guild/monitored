@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-import {setGlobalInstance, StatsdPlugin, monitored, Monitor} from '../src';
+import {setGlobalInstance, StatsdPlugin, monitored, Monitor, monitorMethod} from '../src';
 
 setGlobalInstance(
     new Monitor({
@@ -97,3 +97,17 @@ monitored(
     },
     {logErrorAsInfo: true}
 ).catch(() => {});
+
+// monitor method using decorator
+class Person {
+    firstName: string = 'Jon';
+    lastName: string = 'Doe';
+
+    @monitorMethod('person', {logErrorAsInfo: true})
+    getFullName() {
+        return `${this.firstName} ${this.lastName}`;
+    }
+}
+const person = new Person();
+const name = person.getFullName();
+console.log(`person's name is ${name}`);

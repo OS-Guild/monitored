@@ -1,4 +1,5 @@
 import Monitor from './Monitor';
+import {MonitoredOptions} from './types';
 
 let instance: Monitor | undefined;
 
@@ -15,6 +16,7 @@ export function getGlobalInstance(): Monitor {
 }
 
 export const monitored: Monitor['monitored'] = (...args) => getGlobalInstance().monitored(...args);
+
 /**
  * @deprecated since version 2.0
  */
@@ -22,3 +24,11 @@ export const getStatsdClient: Monitor['getStatsdClient'] = (...args) => getGloba
 export const increment: Monitor['increment'] = (...args) => getGlobalInstance().increment(...args);
 export const gauge: Monitor['gauge'] = (...args) => getGlobalInstance().gauge(...args);
 export const timing: Monitor['timing'] = (...args) => getGlobalInstance().timing(...args);
+
+export const monitorMethod = <T>(prefix?: string, options: MonitoredOptions<T> = {}) => {
+    return function (_target: Object, propertyKey: string, descriptor: PropertyDescriptor) {
+        const originalMethod = descriptor.value;
+        const metricName = `${prefix}${prefix ? '.' : ''}${propertyKey}`;
+        descriptor.value = monitored(metricName, originalMethod, options);
+    };
+};
