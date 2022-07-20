@@ -34,7 +34,7 @@ export interface MonitoredPlugin {
 
     onFailure(opts: OnFailureOptions): void;
 
-    increment(name: string, value?: number, tags?: Record<string, string>): Promise<void>;
+    increment<T extends string>(name: T, value?: number, tags?: Record<string, string>): Promise<void>;
 
     gauge(name: string, value?: number, tags?: Record<string, string>): Promise<void>;
 

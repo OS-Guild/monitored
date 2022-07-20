@@ -17,7 +17,7 @@ export class PluginsWrapper implements Omit<MonitoredPlugin, 'initialize'> {
         this.plugins.forEach(p => p.onFailure(opts));
     }
 
-    async increment(name: string, value?: number, tags?: Record<string, string>): Promise<void> {
+    async increment<T extends string>(name: T, value?: number, tags?: Record<string, string>): Promise<void> {
         await Promise.all(this.plugins.map(p => p.increment(name, value, tags)));
     }
 

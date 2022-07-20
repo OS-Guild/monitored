@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-import {setGlobalInstance, StatsdPlugin, monitored, Monitor} from '../src';
+import {setGlobalInstance, StatsdPlugin, monitored, Monitor, increment} from '../src';
 
 setGlobalInstance(
     new Monitor({
@@ -97,3 +97,10 @@ monitored(
     },
     {logErrorAsInfo: true}
 ).catch(() => {});
+
+// Increment
+increment('metric1');
+
+// Increment with type restriction
+type Color = 'red' | 'orange' | 'green';
+increment<Color>('red');
