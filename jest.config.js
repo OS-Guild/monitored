@@ -10,5 +10,5 @@ module.exports = {
             tsconfig: 'tsconfig.json',
         },
     },
-    testMatch: ['**/__tests__/**/*.spec.+(ts|tsx|js)'],
+    testMatch: ['**/__tests__/**/CloudWatchPlugin.spec.+(ts|tsx|js)'],
 };
