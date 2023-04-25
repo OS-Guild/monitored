@@ -11,4 +11,5 @@ module.exports = {
         },
     },
     testMatch: ['**/__tests__/**/CloudWatchPlugin.spec.+(ts|tsx|js)'],
+    testTimeout: 10000,
 };

@@ -60,6 +60,7 @@ export class CloudWatchPlugin implements MonitoredPlugin {
                 Promise.all(this.promises),
                 'Timeout reached, stopped wait for pending log writes'
             );
+            console.log('promises1', this.promises);
 
             return true;
         } catch (err) {
