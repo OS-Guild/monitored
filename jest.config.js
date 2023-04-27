@@ -10,6 +10,7 @@ module.exports = {
             tsconfig: 'tsconfig.json',
         },
     },
-    testMatch: ['**/__tests__/**/CloudWatchPlugin.spec.+(ts|tsx|js)'],
+    testMatch: ['**/__tests__/**/LambdaEmbeddedMetricsPlugin.spec.+(ts|tsx|js)'],
     testTimeout: 10000,
+    verbose: true,
 };

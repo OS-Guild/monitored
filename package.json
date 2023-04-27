@@ -9,7 +9,7 @@
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "example": "ts-node example/run.ts",
     "prepublishOnly": "yarn build",
-    "test": "jest --config jest.config.js",
+    "test": "AWS_EMF_ENVIRONMENT=Local jest --config jest.config.js",
     "prepare": "husky install"
   },
   "repository": {
@@ -24,7 +24,11 @@
   "homepage": "https://github.com/Soluto/monitored#readme",
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.319.0",
+    "@types/pascalcase": "^1.0.1",
+    "aws-embedded-metrics": "^4.1.0",
     "hot-shots": "^8.5.0",
+    "pascal-case": "^3.1.2",
+    "pascalcase": "^2.0.0",
     "prom-client": "^13.2.0"
   },
   "devDependencies": {

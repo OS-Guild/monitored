@@ -1,4 +1,4 @@
-import * as nock from 'nock';
+import nock from 'nock';
 import {v4 as uuid} from 'uuid';
 import Monitor from '../src/Monitor';
 import {CloudWatchPlugin} from '../src/plugins/CloudWatchPlugin';
@@ -7,7 +7,7 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-describe('CloudWatchPlugin', () => {
+describe('LambdaEmbeddedMetricsPlugin', () => {
     let plugin: CloudWatchPlugin;
     let monitor: Monitor;
     let awsEnpoint: string;
@@ -54,12 +54,15 @@ describe('CloudWatchPlugin', () => {
             Action: 'PutMetricData&Version=2010-08-01',
         });
 
-        nock(awsEnpoint, {allowUnmocked: true}).post('/', decodeURIComponent(startBody.toString())).reply(200);
-        nock(awsEnpoint, {allowUnmocked: true}).post('/', decodeURIComponent(successBody.toString())).reply(200);
+        const startScope = nock(awsEnpoint).post('/', decodeURIComponent(startBody.toString())).reply(200);
+        const successScope = nock(awsEnpoint).post('/', decodeURIComponent(successBody.toString())).reply(200);
 
         await monitor.monitored(metricName, async () => 123);
 
-        await monitor.flush(4000);
+        await monitor.flush(9000);
+
+        expect(startScope.isDone()).toBe(true);
+        expect(successScope.isDone()).toBe(true);
     });
 
     it('onError', async () => {
@@ -84,8 +87,8 @@ describe('CloudWatchPlugin', () => {
             Action: 'PutMetricData&Version=2010-08-01',
         });
 
-        nock(awsEnpoint, {allowUnmocked: true}).post('/', decodeURIComponent(startBody.toString())).reply(200);
-        nock(awsEnpoint, {allowUnmocked: true}).post('/', decodeURIComponent(errorBody.toString())).reply(200);
+        const startScope = nock(awsEnpoint).post('/', decodeURIComponent(startBody.toString())).reply(200);
+        const failureScope = nock(awsEnpoint).post('/', decodeURIComponent(errorBody.toString())).reply(200);
 
         try {
             await monitor.monitored(metricName, async () => {
@@ -96,5 +99,8 @@ describe('CloudWatchPlugin', () => {
         }
 
         await monitor.flush(9000);
+
+        expect(startScope.isDone()).toBe(true);
+        expect(failureScope.isDone()).toBe(true);
     });
 });

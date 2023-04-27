@@ -18,7 +18,8 @@
         "lib": ["dom", "es2017"],
         "skipLibCheck": true,
         "noImplicitAny": false,
-        "useUnknownInCatchVariables": false
+        "useUnknownInCatchVariables": false,
+        "esModuleInterop": true
     },
     "include": ["src/**/*", "types/*.d.ts"],
     "exclude": ["__tests__", "dist"]
