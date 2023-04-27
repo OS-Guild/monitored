@@ -13,7 +13,7 @@ const pascalifyObject = (obj: Record<string, string>): Record<string, string> =>
         return prev;
     }, {});
 
-// https://docs.aws.amazon.com/lambda/latest/operatorguide/custom-metrics.html
+// Docs: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Specification.html
 export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
     private promises: Promise<void>[] = [];
 
