@@ -7,23 +7,18 @@ export interface CloudWatchPluginOptions {
     serviceName: string;
 }
 
-const pascalifyObject = (obj: Record<string, string>): Record<string, string>[] =>
-    Object.entries(obj).map(([x, y]) => ({
-        [pascalCase(x)]: y,
-    }));
+const pascalifyObject = (obj: Record<string, string>): Record<string, string> =>
+    Object.keys(obj).reduce((prev, curr) => {
+        prev[pascalCase(curr)] = obj[curr];
+        return prev;
+    }, {});
 
 // https://docs.aws.amazon.com/lambda/latest/operatorguide/custom-metrics.html
 export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
-    // private metrics: MetricsLogger;
     private promises: Promise<void>[] = [];
 
-    constructor(readonly opts: CloudWatchPluginOptions) {
-        // this.metrics = createMetricsLogger();
-        // this.metrics.setNamespace(opts.serviceName);
-    }
+    constructor(readonly opts: CloudWatchPluginOptions) {}
 
-    // split context and tags
-    // use different scopes for different type metrics
     private async sendMetric<T extends string>(
         name: T,
         unit: Unit,
@@ -33,12 +28,12 @@ export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
     ): Promise<void> {
         const metrics = createMetricsLogger();
 
-        const dimensions: Record<string, string>[] = pascalifyObject(tags ?? {});
-
-        const properties: Record<string, string>[] = pascalifyObject(context ?? {});
+        const dimensions = pascalifyObject(tags ?? {});
+        const properties = pascalifyObject(context ?? {});
 
         metrics.setDimensions(dimensions);
         Object.entries(properties).map(([x, y]) => metrics.setProperty(x, y));
+
         metrics.putMetric(name, value, unit);
 
         metrics.flushPreserveDimensions = false;
