@@ -1,5 +1,5 @@
 import {pascalCase} from 'pascal-case';
-import {createMetricsLogger, Unit} from 'aws-embedded-metrics';
+import {createMetricsLogger, StorageResolution, Unit} from 'aws-embedded-metrics';
 import {MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 import {timeoutPromise} from '../utils';
 
@@ -24,7 +24,8 @@ export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
         unit: Unit,
         value: number,
         tags?: Record<string, string>,
-        context?: Record<string, string> | undefined
+        context?: Record<string, string> | undefined,
+        storageResolution?: StorageResolution
     ): Promise<void> {
         const metrics = createMetricsLogger();
         metrics.setNamespace(this.opts.serviceName);
@@ -35,7 +36,7 @@ export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
         metrics.setDimensions(dimensions);
         Object.entries(properties).map(([x, y]) => metrics.setProperty(x, y));
 
-        metrics.putMetric(name, value, unit);
+        metrics.putMetric(name, value, unit, storageResolution);
 
         metrics.flushPreserveDimensions = false;
         await metrics.flush();
@@ -60,7 +61,7 @@ export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
         tags?: Record<string, string> | undefined,
         context?: Record<string, string> | undefined
     ): Promise<void> {
-        await this.sendMetric(name, Unit.Seconds, value, tags, context);
+        await this.sendMetric(name, Unit.Seconds, value, tags, context, StorageResolution.High);
     }
 
     async flush(timeout: number): Promise<boolean> {
@@ -72,7 +73,7 @@ export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
             );
             return true;
         } catch (err) {
-            console.log('sdfsd', err);
+            console.log('Failed to flush metrics', err);
             return false;
         }
     }

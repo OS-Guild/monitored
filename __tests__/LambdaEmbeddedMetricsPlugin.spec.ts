@@ -2,6 +2,7 @@ import {v4 as uuid} from 'uuid';
 import Monitor from '../src/Monitor';
 import {LambdaEmbeddedMetricsPlugin} from '../src/plugins/LambdaEmbeddedMetricsPlugin';
 import {pascalCase} from 'pascal-case';
+import {StorageResolution} from 'aws-embedded-metrics';
 
 const pascalifyObject = (obj: Record<string, string>): Record<string, string> =>
     Object.keys(obj).reduce((prev, curr) => {
@@ -16,7 +17,8 @@ const generateExpectedCall = (
     unit: 'Count' | 'Seconds',
     value: number,
     context: {},
-    tags: {}
+    tags: {},
+    storageResolution?: StorageResolution
 ) => ({
     ...context,
     ...tags,
@@ -24,7 +26,13 @@ const generateExpectedCall = (
         CloudWatchMetrics: [
             {
                 Dimensions: [Object.keys(tags)],
-                Metrics: [{Name: `${metricName}${status}`, Unit: unit}],
+                Metrics: [
+                    {
+                        Name: `${metricName}${status}`,
+                        Unit: unit,
+                        ...(storageResolution && {StorageResolution: storageResolution}),
+                    },
+                ],
                 Namespace: serviceName,
             },
         ],
@@ -82,7 +90,16 @@ describe('LambdaEmbeddedMetricsPlugin', () => {
 
         expect(lastCall).toEqual(
             expect.objectContaining(
-                generateExpectedCall(serviceName, metricName, 'Success', 'Seconds', 0, expectedContext, expectedTags)
+                generateExpectedCall(
+                    serviceName,
+                    metricName,
+                    'Success',
+                    'Seconds',
+                    0,
+                    expectedContext,
+                    expectedTags,
+                    StorageResolution.High
+                )
             )
         );
     });
@@ -126,7 +143,16 @@ describe('LambdaEmbeddedMetricsPlugin', () => {
 
         expect(lastCall).toEqual(
             expect.objectContaining(
-                generateExpectedCall(serviceName, metricName, 'Failure', 'Seconds', 0, expectedContext, expectedTags)
+                generateExpectedCall(
+                    serviceName,
+                    metricName,
+                    'Failure',
+                    'Seconds',
+                    0,
+                    expectedContext,
+                    expectedTags,
+                    StorageResolution.High
+                )
             )
         );
     });
