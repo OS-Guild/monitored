@@ -61,7 +61,7 @@ export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
         tags?: Record<string, string> | undefined,
         context?: Record<string, string> | undefined
     ): Promise<void> {
-        await this.sendMetric(name, Unit.Seconds, value, tags, context, StorageResolution.High);
+        await this.sendMetric(name, Unit.Milliseconds, value, tags, context, StorageResolution.High);
     }
 
     async flush(timeout: number): Promise<boolean> {
