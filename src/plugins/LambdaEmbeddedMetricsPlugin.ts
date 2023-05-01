@@ -3,7 +3,8 @@ import {createMetricsLogger, StorageResolution, Unit} from 'aws-embedded-metrics
 import {MonitoredPlugin, OnFailureOptions, OnStartOptions, OnSuccessOptions} from './types';
 import {timeoutPromise} from '../utils';
 
-export interface CloudWatchPluginOptions {
+export interface LambdaEmbeddedMetricsPluginOptions {
+    namespace?: string;
     serviceName: string;
 }
 
@@ -17,7 +18,7 @@ const pascalifyObject = (obj: Record<string, string>): Record<string, string> =>
 export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
     private promises: Promise<void>[] = [];
 
-    constructor(readonly opts: CloudWatchPluginOptions) {}
+    constructor(readonly opts: LambdaEmbeddedMetricsPluginOptions) {}
 
     private async sendMetric<T extends string>(
         name: T,
@@ -28,9 +29,9 @@ export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
         storageResolution?: StorageResolution
     ): Promise<void> {
         const metrics = createMetricsLogger();
-        metrics.setNamespace(this.opts.serviceName);
+        metrics.setNamespace(this.opts.namespace ?? this.opts.serviceName);
 
-        const dimensions = pascalifyObject(tags ?? {});
+        const dimensions = {Service: this.opts.serviceName, ...pascalifyObject(tags ?? {})};
         const properties = pascalifyObject(context ?? {});
 
         metrics.setDimensions(dimensions);
@@ -83,10 +84,12 @@ export class LambdaEmbeddedMetricsPlugin implements MonitoredPlugin {
     }
 
     onSuccess({scope, options, executionTime}: OnSuccessOptions): void {
-        this.promises.push(this.timing(`${scope}Success`, executionTime, options?.tags, options?.context));
+        this.promises.push(this.increment(`${scope}Success`, 1, options?.tags, options?.context));
+        this.promises.push(this.timing(`${scope}SuccessExecutionTime`, executionTime, options?.tags, options?.context));
     }
 
     onFailure({scope, options, executionTime}: OnFailureOptions): void {
-        this.promises.push(this.timing(`${scope}Failure`, executionTime, options?.tags, options?.context));
+        this.promises.push(this.increment(`${scope}Failure`, 1, options?.tags, options?.context));
+        this.promises.push(this.timing(`${scope}FailureExecutionTime`, executionTime, options?.tags, options?.context));
     }
 }

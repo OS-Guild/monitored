@@ -13,7 +13,7 @@ const pascalifyObject = (obj: Record<string, string>): Record<string, string> =>
 const generateExpectedCall = (
     serviceName: string,
     metricName: string,
-    status: 'Start' | 'Success' | 'Failure',
+    status: 'Start' | 'Success' | 'Failure' | 'SuccessExecutionTime' | 'FailureExecutionTime',
     unit: 'Count' | 'Milliseconds',
     value: number,
     context: {},
@@ -67,7 +67,7 @@ describe('LambdaEmbeddedMetricsPlugin', () => {
         const metricName = uuid();
         const logSpy = jest.spyOn(console, 'log');
         const tags = {[`dimension_${uuid()}`]: uuid(), [`dimension_${uuid()}`]: uuid()};
-        const expectedTags = pascalifyObject(tags);
+        const expectedTags = {Service: serviceName, ...pascalifyObject(tags)};
 
         const context = {[`property_${uuid()}`]: uuid(), [`property_${uuid()}`]: uuid()};
         const expectedContext = pascalifyObject(context);
@@ -77,23 +77,31 @@ describe('LambdaEmbeddedMetricsPlugin', () => {
         await monitor.flush(1000);
         const {calls} = logSpy.mock;
 
-        const firstCall = JSON.parse(calls[0][0]);
-        delete firstCall._aws.Timestamp;
-        const lastCall = JSON.parse(calls[1][0]);
-        delete lastCall._aws.Timestamp;
+        const startCall = JSON.parse(calls[0][0]);
+        delete startCall._aws.Timestamp;
+        const successCall = JSON.parse(calls[1][0]);
+        delete successCall._aws.Timestamp;
+        const successExecutionTimeCall = JSON.parse(calls[2][0]);
+        delete successExecutionTimeCall._aws.Timestamp;
 
-        expect(firstCall).toEqual(
+        expect(startCall).toEqual(
             expect.objectContaining(
                 generateExpectedCall(serviceName, metricName, 'Start', 'Count', 1, expectedContext, expectedTags)
             )
         );
 
-        expect(lastCall).toEqual(
+        expect(successCall).toEqual(
+            expect.objectContaining(
+                generateExpectedCall(serviceName, metricName, 'Success', 'Count', 1, expectedContext, expectedTags)
+            )
+        );
+
+        expect(successExecutionTimeCall).toEqual(
             expect.objectContaining(
                 generateExpectedCall(
                     serviceName,
                     metricName,
-                    'Success',
+                    'SuccessExecutionTime',
                     'Milliseconds',
                     0,
                     expectedContext,
@@ -109,7 +117,7 @@ describe('LambdaEmbeddedMetricsPlugin', () => {
         const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
         const tags = {[`dimension_${uuid()}`]: uuid(), [`dimension_${uuid()}`]: uuid()};
-        const expectedTags = pascalifyObject(tags);
+        const expectedTags = {Service: serviceName, ...pascalifyObject(tags)};
 
         const context = {[`property_${uuid()}`]: uuid(), [`property_${uuid()}`]: uuid()};
         const expectedContext = pascalifyObject(context);
@@ -124,36 +132,48 @@ describe('LambdaEmbeddedMetricsPlugin', () => {
             );
         } catch (err) {
             console.log(err);
+
+            await monitor.flush(2000);
+
+            const {calls} = logSpy.mock;
+
+            const startCall = JSON.parse(calls[0][0]);
+            delete startCall._aws.Timestamp;
+            const failureCall = JSON.parse(calls[2][0]);
+            delete failureCall._aws.Timestamp;
+            const failureExecutionTimeCall = JSON.parse(calls[3][0]);
+            delete failureExecutionTimeCall._aws.Timestamp;
+
+            expect(startCall).toEqual(
+                expect.objectContaining(
+                    generateExpectedCall(serviceName, metricName, 'Start', 'Count', 1, expectedContext, expectedTags)
+                )
+            );
+
+            expect(failureCall).toEqual(
+                expect.objectContaining(
+                    generateExpectedCall(serviceName, metricName, 'Failure', 'Count', 1, expectedContext, expectedTags)
+                )
+            );
+
+            expect(failureExecutionTimeCall).toEqual(
+                expect.objectContaining(
+                    generateExpectedCall(
+                        serviceName,
+                        metricName,
+                        'FailureExecutionTime',
+                        'Milliseconds',
+                        0,
+                        expectedContext,
+                        expectedTags,
+                        StorageResolution.High
+                    )
+                )
+            );
+
+            return;
         }
 
-        await monitor.flush(2000);
-
-        const {calls} = logSpy.mock;
-
-        const firstCall = JSON.parse(calls[0][0]);
-        delete firstCall._aws.Timestamp;
-        const lastCall = JSON.parse(calls[2][0]);
-        delete lastCall._aws.Timestamp;
-
-        expect(firstCall).toEqual(
-            expect.objectContaining(
-                generateExpectedCall(serviceName, metricName, 'Start', 'Count', 1, expectedContext, expectedTags)
-            )
-        );
-
-        expect(lastCall).toEqual(
-            expect.objectContaining(
-                generateExpectedCall(
-                    serviceName,
-                    metricName,
-                    'Failure',
-                    'Milliseconds',
-                    0,
-                    expectedContext,
-                    expectedTags,
-                    StorageResolution.High
-                )
-            )
-        );
+        throw new Error('Function execution should fail');
     });
 });
